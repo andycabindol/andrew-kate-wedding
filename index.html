@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSVP for Katie &amp; Andrew's Wedding Day</title>
+    <meta name="description" content="Katie &amp; Andrew" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="viewport-blur" aria-hidden="true">
+      <div class="viewport-blur__layer viewport-blur__layer--1"></div>
+      <div class="viewport-blur__layer viewport-blur__layer--2"></div>
+      <div class="viewport-blur__layer viewport-blur__layer--3"></div>
+      <div class="viewport-blur__layer viewport-blur__layer--4"></div>
+      <div class="viewport-blur__layer viewport-blur__layer--5"></div>
+      <div class="viewport-blur__layer viewport-blur__layer--6"></div>
+    </div>
+
+    <header class="nav" id="nav">
+      <div class="nav__inner">
+        <a href="#" class="nav__logo">Katie &amp; Andrew</a>
+
+        <nav class="nav__links" id="navLinks">
+          <a href="#gallery">Gallery</a>
+          <a href="#schedule">Schedule</a>
+          <a href="#venue">Venue</a>
+          <a href="#contact">Contact</a>
+          <a href="#rsvp" class="nav__rsvp-btn">RSVP</a>
+        </nav>
+
+        <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div class="nav__mobile" id="navMobile" aria-hidden="true">
+        <a href="#gallery">Gallery</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#venue">Venue</a>
+        <a href="#contact">Contact</a>
+        <a href="#rsvp">RSVP</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="invitation">
+        <div class="hero__image-wrap">
+          <img
+            src="/images/hero.jpeg"
+            alt="Katie and Andrew engagement photo in a wildflower field"
+            class="hero__image"
+          />
+          <div class="hero__overlay"></div>
+        </div>
+        <div class="hero__content">
+          <div class="hero__card">
+            <div class="hero__card-inner">
+              <h1 class="hero__title">Katie &amp; Andrew</h1>
+              <p class="hero__date">May 29, 2027</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section save-the-date">
+        <div class="container save-the-date__grid">
+          <div class="save-the-date__text">
+            <h2 class="section-title">Save the Date</h2>
+            <p class="body-text">
+              We would love for you to join us in Ames, Iowa, on May 29, 2027, as we come together
+              in the sacrament of marriage. We're honored to share this special day with the people
+              we love the most and can't wait to celebrate with you!
+            </p>
+          </div>
+          <div class="save-the-date__card">
+            <p class="save-the-date__card-date">May 29, 2027</p>
+            <h6 class="save-the-date__card-location">Ames, IA</h6>
+            <a href="#rsvp" class="btn btn--dark">RSVP Now</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section our-story">
+        <div class="container our-story__grid">
+          <div class="our-story__content">
+            <h2 class="section-title">Our Story</h2>
+            <h3 class="story-subtitle">Love at first dance…</h3>
+            <p class="body-text">
+              We met while attending Iowa State University during the spring of 2024. After we were
+              briefly introduced in the student lounge at St. Thomas Aquinas, our church in Ames, we
+              unexpectedly agreed to go to a swing dance together the next day. Katie swept Andrew
+              off his feet, and after that first dance, the deal was sealed.
+            </p>
+            <p class="body-text">
+              Over 2 years of dating, we have built our relationship on unforgettable adventures,
+              unwavering support of one another, and most importantly, our shared faith. As we enter
+              this exciting new stage of our lives as a married couple, we would want nothing more
+              than to celebrate with the people we love most.
+            </p>
+          </div>
+          <div class="our-story__image">
+            <img
+              src="/images/story.jpeg"
+              alt="Katie and Andrew engagement photo"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="section gallery" id="gallery">
+        <div class="container">
+          <p class="label">Engagement</p>
+          <h2 class="section-heading section-heading--center">Our Photos</h2>
+          <p class="body-text body-text--center gallery__intro">
+            A few of our favorite moments from our engagement season.
+          </p>
+          <div class="gallery__grid">
+            <figure class="gallery__item gallery__item--wide">
+              <img src="/images/gallery/engagement-1.jpeg" alt="Katie and Andrew engagement photo" />
+            </figure>
+            <figure class="gallery__item">
+              <img src="/images/gallery/engagement-2.jpeg" alt="Katie and Andrew engagement photo" />
+            </figure>
+            <figure class="gallery__item">
+              <img src="/images/gallery/engagement-3.jpeg" alt="Katie and Andrew engagement photo" />
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section venue" id="venue">
+        <div class="container">
+          <p class="label">The Wedding</p>
+          <h2 class="section-heading section-heading--center">St. Thomas Aquinas Church</h2>
+
+          <div class="carousel" id="weddingCarousel">
+            <div class="carousel__track">
+              <div class="carousel__slide active">
+                <img
+                  src="/images/church/church-1.jpg"
+                  alt="Brick exterior and main entrance of St. Thomas Aquinas Catholic Church in Ames." loading="lazy"
+                />
+              </div>
+              <div class="carousel__slide">
+                <img
+                  src="/images/church/church-2.jpg"
+                  alt="Pews facing the altar beneath exposed roof beams in St. Thomas Aquinas Catholic Church." loading="lazy"
+                />
+              </div>
+              <div class="carousel__slide">
+                <img
+                  src="/images/church/church-3.jpg"
+                  alt="Blue stained-glass panels beside tall sanctuary windows at St. Thomas Aquinas Catholic Church." loading="lazy"
+                />
+              </div>
+            </div>
+            <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">
+              <img src="/images/arrow-left.svg" alt="" />
+            </button>
+            <button class="carousel__btn carousel__btn--next" aria-label="Next slide">
+              <img src="/images/arrow-right.svg" alt="" />
+            </button>
+          </div>
+
+          <div class="venue__info">
+            <p class="venue__address">2210 Lincoln Way, Ames, IA 50014</p>
+            <a
+              href="https://maps.google.com/?q=2210+Lincoln+Way,+Ames,+IA+50014"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="venue__map-link"
+            >
+              Find on the map
+            </a>
+            <span class="venue__credit">Photos: <a href="https://rdgusa.com/work/project/st-thomas-aquinas-catholic-church-ames" target="_blank" rel="noopener noreferrer">RDG Planning &amp; Design</a></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section venue venue--reception" id="reception">
+        <div class="container">
+          <p class="label">The Reception</p>
+          <h2 class="section-heading section-heading--center">Raspberry Hill Bed &amp; Breakfast</h2>
+
+          <div class="carousel" id="receptionCarousel">
+            <div class="carousel__track">
+              <div class="carousel__slide active">
+                <img
+                  src="/images/reception/reception-1.jpeg"
+                  alt="A decorated reception table beneath tall wooden windows at Raspberry Hill." loading="lazy"
+                />
+              </div>
+              <div class="carousel__slide">
+                <img
+                  src="/images/reception/reception-2.jpeg"
+                  alt="Open-air pavilion at Raspberry Hill in Ames with a snow-covered lawn." loading="lazy"
+                />
+              </div>
+              <div class="carousel__slide">
+                <img
+                  src="/images/reception/reception-3.jpeg"
+                  alt="Cottage at Raspberry Hill surrounded by flowers and green foliage." loading="lazy"
+                />
+              </div>
+            </div>
+            <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">
+              <img src="/images/arrow-left.svg" alt="" />
+            </button>
+            <button class="carousel__btn carousel__btn--next" aria-label="Next slide">
+              <img src="/images/arrow-right.svg" alt="" />
+            </button>
+          </div>
+
+          <div class="venue__info">
+            <p class="venue__address">5500 240th St, Ames, IA 50014</p>
+            <a
+              href="https://maps.google.com/?q=5500+240th+St,+Ames,+IA+50014"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="venue__map-link"
+            >
+              Find on the map
+            </a>
+            <span class="venue__credit">Photos: <a href="https://www.raspberryhillbnb.com/celebrations" target="_blank" rel="noopener noreferrer">Raspberry Hill</a></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section lodging">
+        <div class="container">
+          <p class="label label--caslon">The Lodging</p>
+          <h2 class="section-heading section-heading--center">Where to Stay</h2>
+          <p class="body-text body-text--center lodging__intro">
+            We've picked a few favourites within easy reach of the venue. Book early – May is a
+            busy season in Ames!
+          </p>
+          <h6 class="lodging__help">
+            We may reserve blocks of hotel rooms — details coming soon. If you need help finding the
+            right place to stay, feel free to reach out and we'll be happy to help.
+          </h6>
+
+          <div class="lodging__grid lodging__grid--three">
+            <article class="lodging-card">
+              <div class="lodging-card__body">
+                <h4 class="lodging-card__title">Gateway Hotel</h4>
+                <p class="body-text">
+                  Comfortable amenities for guests traveling from out of town, conveniently located
+                  near campus.
+                </p>
+                <a
+                  href="https://www.gatewayhotel.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="lodging-card__book"
+                  >Book</a
+                >
+              </div>
+            </article>
+
+            <article class="lodging-card">
+              <div class="lodging-card__body">
+                <h4 class="lodging-card__title">Hilton Garden Inn</h4>
+                <p class="body-text">
+                  A reliable stay with modern rooms and easy access to Ames and Iowa State
+                  University.
+                </p>
+                <a
+                  href="https://www.hilton.com/en/hotels/amagigi-hilton-garden-inn-ames/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="lodging-card__book"
+                  >Book</a
+                >
+              </div>
+            </article>
+
+            <article class="lodging-card">
+              <div class="lodging-card__body">
+                <h4 class="lodging-card__title">AmericInn</h4>
+                <p class="body-text">
+                  A comfortable and affordable option for out-of-town guests visiting Ames.
+                </p>
+                <a
+                  href="https://www.wyndhamhotels.com/americinn/ames-iowa/americinn-by-wyndham-ames/overview"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="lodging-card__book"
+                  >Book</a
+                >
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section dress-code">
+        <div class="container dress-code__grid">
+          <div class="dress-code__images">
+            <img
+              src="/images/dress-cottage.png"
+              alt="Elegant wedding attire inspiration"
+              class="dress-code__img dress-code__img--large"
+            />
+            <img
+              src="/images/dress-hanger.png"
+              alt="Formal dress on a wooden hanger"
+              class="dress-code__img dress-code__img--small"
+            />
+          </div>
+          <div class="dress-code__content">
+            <p class="label label--caslon">Dress code</p>
+            <h2 class="section-heading">What to wear</h2>
+            <p class="body-text">
+              Out of reverence for the sacrament of marriage and its sacred beauty, we ask our
+              guests to dress in cocktail to semi-formal attire. The wedding ceremony will be held
+              in a Catholic church, so we humbly ask that modesty be observed.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section schedule" id="schedule">
+        <div class="container">
+          <p class="label">Schedule</p>
+          <h2 class="section-heading section-heading--center">Our day</h2>
+          <p class="body-text body-text--center schedule__intro">
+            It's still too early to tell the exact timing of things, but here is the order of events
+            we have planned.
+          </p>
+
+          <div class="timeline">
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Nuptial Mass</h3>
+                <p class="body-text">
+                  Mass will begin at Xpm at St. Thomas Aquinas. Please arrive by X (15 minutes in
+                  advance) so our ushers can find you a seat before the ceremony begins.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Cocktail Hour</h3>
+                <p class="body-text">
+                  After mass, join us at the Raspberry Hill for drinks and appetizers while we sneak
+                  off for photos.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Dinner</h3>
+                <p class="body-text">
+                  We will dismiss tables one at a time to grab their food. We will be serving
+                  entrées and sides buffet style.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Speeches</h3>
+                <p class="body-text">
+                  Some of our closest friends and family will share some words after dinner is
+                  served.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Cake &amp; Dessert</h3>
+                <p class="body-text">Details to come!</p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Dance</h3>
+                <p class="body-text">
+                  The dance floor will open with our first dance. After that, it's all yours. Our
+                  DJ will keep the jams rolling until xpm.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline__item">
+              <span class="timeline__time">TBD</span>
+              <div class="timeline__content">
+                <h3 class="timeline__title">Ending</h3>
+                <p class="body-text">
+                  The reception will wrap up at xpm. We hope that you'll have had a great evening of
+                  food, friendship, and tearing up the dance floor.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section gifts">
+        <div class="container">
+          <div class="gifts__card">
+            <h2 class="section-heading section-heading--center">Gift Registry</h2>
+            <p class="body-text body-text--center">
+              Sharing our wedding day with you is what matters most to us. If you would like to give
+              a gift, a contribution to our registry would be greatly appreciated.
+            </p>
+            <div class="gifts__links">
+              <a
+                href="https://registry.theknot.com/andrew-torres-katie-ferguson-may-2027-ia/78612430"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gifts__link"
+                >The Knot</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section rsvp" id="rsvp">
+        <div class="container rsvp__grid">
+          <div class="rsvp__form-wrap">
+            <p class="label">RSVP</p>
+            <h2 class="section-heading">Will You Be There?</h2>
+            <p class="body-text rsvp__intro">
+              Kindly reply by <span data-rsvp-deadline>October 30, 2026</span>.
+              We look forward to celebrating with you.
+            </p>
+
+            <div id="rsvpLoadingStep" class="rsvp-state" role="status">
+              <p class="rsvp-note">Checking invitations…</p>
+            </div>
+            <div id="rsvpPendingStep" class="rsvp-state" hidden>
+              <p class="rsvp-state__eyebrow">A little closer to the day</p>
+              <h3 class="rsvp-state__title">RSVPs opening soon</h3>
+              <p class="body-text">We’re putting the finishing touches on our guest list. Please check back once you’ve received your invitation.</p>
+            </div>
+            <div id="rsvpUnavailableStep" class="rsvp-state" hidden>
+              <h3 class="rsvp-state__title">Let’s try that again</h3>
+              <p class="body-text">We couldn’t load invitations right now. Please try again in a moment.</p>
+              <button type="button" id="rsvpRetry" class="btn btn--dark">Try again</button>
+            </div>
+            <div id="rsvpSearchStep" hidden>
+              <p class="rsvp-step">01 / Find your invitation</p>
+              <form id="rsvpLookupForm" class="rsvp-lookup">
+                <div class="form-group">
+                  <label for="guestSearch">Your full name</label>
+                  <input type="search" id="guestSearch" name="guestSearch" placeholder="First and last name"
+                    autocomplete="name" minlength="3" maxlength="120" required aria-describedby="guestSearchHelp" />
+                  <p id="guestSearchHelp" class="rsvp-note">Use the name on your invitation.</p>
+                </div>
+                <button type="submit" class="btn btn--dark btn--full">Find invitation</button>
+              </form>
+              <ul id="guestResults" class="guest-results" aria-label="Matching invitations" hidden></ul>
+            </div>
+            <div id="rsvpConfirmStep" hidden>
+              <p class="rsvp-step">02 / Your reply</p>
+              <h3 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h3>
+              <p class="body-text rsvp__confirm-intro">Please reply for each person on your invitation.</p>
+              <form class="rsvp-form" id="rsvpForm">
+                <div id="partyMembers"></div>
+                <div class="form-group">
+                  <label for="wishes">A note for us <span class="form-optional">optional</span></label>
+                  <textarea id="wishes" name="wishes" rows="4" maxlength="2000" placeholder="Your wishes, a little love, anything you’d like to share…"></textarea>
+                </div>
+                <button type="submit" id="rsvpSubmit" class="btn btn--dark btn--full">Confirm RSVP</button>
+                <button type="button" class="btn btn--text btn--full" id="changePartyBtn">Find a different invitation</button>
+              </form>
+            </div>
+            <div id="rsvpSuccessStep" class="rsvp-state rsvp-state--success" hidden>
+              <span class="rsvp-success-mark" aria-hidden="true">✓</span>
+              <h3 class="rsvp-state__title" id="rsvpSuccessHeading" tabindex="-1">Your reply is saved.</h3>
+              <p class="body-text">Thank you for letting us know.</p>
+              <ul id="rsvpSummary" class="rsvp-summary" aria-label="Your saved RSVP"></ul>
+              <p class="rsvp-note">Plans change. You can find your invitation again to update your reply.</p>
+              <button type="button" id="rsvpAgain" class="btn btn--text">Back to invitations</button>
+            </div>
+            <p id="rsvpStatus" class="rsvp-status" role="status" aria-live="polite" aria-atomic="true"></p>
+            <p class="rsvp-help">Need a hand? <a href="mailto:katieferg93@gmail.com">Email Katie</a></p>
+            <noscript><p class="body-text">Please enable JavaScript to RSVP, or email Katie for help.</p></noscript>
+          </div>
+
+          <div class="rsvp__image">
+            <img
+              src="/images/rsvp.jpeg"
+              alt="Katie and Andrew engagement photo"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="section faq">
+        <div class="container">
+          <h2 class="section-heading section-heading--center">Questions?</h2>
+          <p class="body-text body-text--center faq__intro">
+            Here are answers to a few questions we've been asked. If you need any help, just send
+            us an email!
+          </p>
+
+          <div class="accordion" id="faqAccordion">
+            <div class="accordion__item">
+              <button class="accordion__trigger" aria-expanded="false">
+                <span>When should I RSVP by?</span>
+                <span class="accordion__icon"></span>
+              </button>
+              <div class="accordion__panel">
+                <p class="body-text">
+                  Please RSVP by <span data-rsvp-deadline>October 30, 2026</span>. This gives us enough time to confirm final numbers
+                  with our caterers and create the seating plan.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <button class="accordion__trigger" aria-expanded="false">
+                <span>Can I bring a plus-one?</span>
+                <span class="accordion__icon"></span>
+              </button>
+              <div class="accordion__panel">
+                <p class="body-text">
+                  We've indicated on your invitation whether you have a guest included. If you're
+                  unsure or your situation has changed, just drop us an email and we'll sort it
+                  out.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <button class="accordion__trigger" aria-expanded="false">
+                <span>Can I receive communion if I am not Catholic?</span>
+                <span class="accordion__icon"></span>
+              </button>
+              <div class="accordion__panel">
+                <p class="body-text">
+                  The Catholic Church believes that the bread and wine offered during the Mass truly
+                  become the body and blood of Jesus Christ. Holding to the teachings of the church,
+                  we ask that only practicing Catholics who have been properly prepared to receive
+                  communion do so. If you are not a practicing Catholic, you may remain seated in
+                  your pew or come forward with arms crossed to receive a blessing as communion is
+                  distributed.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <button class="accordion__trigger" aria-expanded="false">
+                <span>Is there parking at the venue?</span>
+                <span class="accordion__icon"></span>
+              </button>
+              <div class="accordion__panel">
+                <p class="body-text">
+                  Yes! Parking will be available for you at Raspberry Hill. Follow the signs when you
+                  arrive, and our ushers will direct you.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section contact" id="contact">
+        <div class="container contact__inner">
+          <h2 class="section-heading section-heading--center">Get in Touch</h2>
+          <p class="body-text body-text--center">
+            Have a question we haven't answered? Want to chat about travel plans or anything else?
+            We'd love to hear from you.
+          </p>
+          <a href="mailto:katieferg93@gmail.com" class="contact__email">katieferg93@gmail.com</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <a href="#" class="footer__logo">Katie &amp; Andrew</a>
+        <nav class="footer__links">
+          <a href="#invitation">Invitation</a>
+          <a href="#schedule">Schedule</a>
+          <a href="#rsvp">RSVP</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "parties": [
+    {
+      "id": "smith-party",
+      "label": "John & Jane Smith",
+      "members": [
+        { "id": "john-smith", "name": "John Smith" },
+        { "id": "jane-smith", "name": "Jane Smith" }
+      ]
+    },
+    {
+      "id": "johnson-party",
+      "label": "Michael Johnson",
+      "members": [{ "id": "michael-johnson", "name": "Michael Johnson" }]
+    },
+    {
+      "id": "williams-party",
+      "label": "Sarah & David Williams",
+      "members": [
+        { "id": "sarah-williams", "name": "Sarah Williams" },
+        { "id": "david-williams", "name": "David Williams" },
+        { "id": "emma-williams", "name": "Emma Williams" }
+      ]
+    },
+    {
+      "id": "garcia-party",
+      "label": "Maria Garcia",
+      "members": [{ "id": "maria-garcia", "name": "Maria Garcia" }]
+    },
+    {
+      "id": "ferguson-party",
+      "label": "Robert & Linda Ferguson",
+      "members": [
+        { "id": "robert-ferguson", "name": "Robert Ferguson" },
+        { "id": "linda-ferguson", "name": "Linda Ferguson" }
+      ]
+    }
+  ]
+}

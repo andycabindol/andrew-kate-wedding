@@ -1,0 +1,92 @@
+[
+  {
+    "local": "/tmp/wedding-verified-assets/st-thomas-aquinas-exterior.jpg",
+    "url": "https://rdg-openasset.s3.amazonaws.com/openasset-v2/R0095.231.07/r0095.231.07-st-thomas-aquinas-catholic-chu_36862.jpg",
+    "original_alt": "St Thomas Aquinas Catholic Church Assassi Sanctuary Exterior 3.jpg",
+    "source_page": "https://rdgusa.com/work/project/st-thomas-aquinas-catholic-church-ames",
+    "alt": "Brick exterior and main entrance of St. Thomas Aquinas Catholic Church in Ames.",
+    "dimensions": [
+      2534,
+      2000
+    ],
+    "credit": "Source: RDG Planning & Design",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/church/church-1.jpg"
+  },
+  {
+    "local": "/tmp/wedding-verified-assets/st-thomas-aquinas-sanctuary.jpg",
+    "url": "https://rdg-openasset.s3.amazonaws.com/openasset-v2/R0095.231.07/r0095.231.07-st-thomas-aquinas-catholic-chu_36861.jpg",
+    "original_alt": "St Thomas Aquinas Catholic Church Assassi Sanctuary 3.jpg",
+    "source_page": "https://rdgusa.com/work/project/st-thomas-aquinas-catholic-church-ames",
+    "alt": "Pews facing the altar beneath exposed roof beams in St. Thomas Aquinas Catholic Church.",
+    "dimensions": [
+      1589,
+      2000
+    ],
+    "credit": "Source: RDG Planning & Design",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/church/church-2.jpg"
+  },
+  {
+    "local": "/tmp/wedding-verified-assets/st-thomas-aquinas-stained-glass.jpg",
+    "url": "https://rdg-openasset.s3.amazonaws.com/openasset-v2/R0095.231.07/r0095.231.07-st-thomas-aquinas-catholic-chu_71260.jpg",
+    "original_alt": "St Thomas Aquinas Catholic Church Assassi Sanctuary windows 3.jpg",
+    "source_page": "https://rdgusa.com/work/project/st-thomas-aquinas-catholic-church-ames",
+    "alt": "Blue stained-glass panels beside tall sanctuary windows at St. Thomas Aquinas Catholic Church.",
+    "dimensions": [
+      1568,
+      2000
+    ],
+    "credit": "Source: RDG Planning & Design",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/church/church-3.jpg"
+  },
+  {
+    "local": "/tmp/wedding-verified-assets/raspberry-hill-dining-room.jpg",
+    "url": "https://static.wixstatic.com/media/4d144b_e33ad75c99204adaa8433eafad78206b~mv2.jpeg",
+    "original_alt": "thumbnail_image11.jpeg",
+    "source_page": "https://www.raspberryhillbnb.com/celebrations",
+    "alt": "A decorated reception table beneath tall wooden windows at Raspberry Hill.",
+    "dimensions": [
+      1280,
+      851
+    ],
+    "credit": "Source: Raspberry Hill Bed and Breakfast",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/reception/reception-1.jpeg"
+  },
+  {
+    "local": "/tmp/wedding-verified-assets/raspberry-hill-pavilion.jpg",
+    "url": "https://static.wixstatic.com/media/4d144b_0606d2c9e0474275b44b7852c0bd4c45~mv2.jpg",
+    "original_alt": "160853994_2753126984940533_8270997590511",
+    "source_page": "https://www.raspberryhillbnb.com/celebrations",
+    "alt": "Open-air pavilion at Raspberry Hill in Ames with a snow-covered lawn.",
+    "dimensions": [
+      960,
+      720
+    ],
+    "credit": "Source: Raspberry Hill Bed and Breakfast",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/reception/reception-2.jpeg"
+  },
+  {
+    "local": "/tmp/wedding-verified-assets/raspberry-hill-cottage.jpg",
+    "url": "https://static.wixstatic.com/media/4d144b_43f3ceeed00e4e7eabeabf242789e29f~mv2.jpeg",
+    "original_alt": "thumbnail_image0.jpeg",
+    "source_page": "https://www.raspberryhillbnb.com/celebrations",
+    "alt": "Cottage at Raspberry Hill surrounded by flowers and green foliage.",
+    "dimensions": [
+      960,
+      640
+    ],
+    "credit": "Source: Raspberry Hill Bed and Breakfast",
+    "reuse_note": "No explicit reuse license found on source page. Publicly displayed source photo; attribution is not a license.",
+    "verification": "Downloaded from named venue source page and visually inspected. No people appear in selected photo.",
+    "site_path": "public/images/reception/reception-3.jpeg"
+  }
+]

@@ -1,0 +1,5 @@
+project_id = "andrew-kate-wedding"
+
+# Name lookup is public; submission requires the function's signed invitation token.
+[functions.wedding-rsvp]
+verify_jwt = false
