@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHandler, normalizeName } from '../supabase/functions/wedding-rsvp/handler.js';
+import { highlightUnmatched, matchParties, partiesFromRows, suggestGuests } from '../supabase/functions/wedding-rsvp/matching.js';
 import { prepareInvitations } from '../scripts/import-guests.js';
 
 const party = { id: 'test-party', label: 'Alex & Jamie', members: [{ id: 'alex', name: 'Alex Guest' }, { id: 'jamie', name: 'Jamie Guest' }] };
@@ -81,6 +82,53 @@ test('database failure never claims a saved RSVP', async () => {
 test('rate limits name lookup and reply attempts', async () => {
   const app = setup(); app.limit();
   assert.equal((await app.call({ action: 'search', name: 'Alex Guest' })).status, 429);
+});
+test('sheet rows keep same last names as separate invitations and add plus ones', () => {
+  const parties = partiesFromRows([
+    { party_id: 'cabindol-andrew', party_name: 'Andrew Cabindol', guest_name: 'Andrew Cabindol', also_known_as: 'Andy Cabindol', extra_guests: '1' },
+    { party_id: 'cabindol-parents', party_name: 'Jose & Maria Cabindol', guest_name: 'Jose Cabindol', extra_guests: '0' },
+    { party_id: 'cabindol-parents', party_name: 'Jose & Maria Cabindol', guest_name: 'Maria Cabindol', also_known_as: 'Mary Cabindol' },
+  ]);
+  assert.equal(parties.length, 2);
+  assert.equal(parties[0].members.at(-1).plusOne, true);
+  assert.equal(matchParties('Andy Cabindol', parties)[0].id, 'cabindol-andrew');
+  assert.equal(matchParties('Andew Cabindol', parties)[0].id, 'cabindol-andrew');
+  assert.deepEqual(matchParties('Cabindol', parties).map((party) => party.id), ['cabindol-andrew', 'cabindol-parents']);
+  assert.equal(matchParties('Mary Cabindol', parties)[0].label, 'Jose & Maria Cabindol');
+  assert.equal(matchParties('Ann Cabindol', parties).length, 0);
+});
+test('name suggestions highlight only the letters that do not match', () => {
+  const parties = partiesFromRows([
+    { party_id: 'cabindol-andrew', party_name: 'Andrew Cabindol', guest_name: 'Andrew Cabindol', also_known_as: 'Andy Cabindol, Andy', extra_guests: '1' },
+    { party_id: 'cabindol-parents', party_name: 'Jose & Maria Cabindol', guest_name: 'Jose Cabindol', extra_guests: '0' },
+    { party_id: 'cabindol-parents', party_name: 'Jose & Maria Cabindol', guest_name: 'Maria Cabindol', also_known_as: 'Mary Cabindol' },
+  ]);
+  assert.deepEqual(highlightUnmatched('Andrew Cabindol', 'Cab'), [
+    { text: 'Andrew ', unmatched: true },
+    { text: 'Cab', unmatched: false },
+    { text: 'indol', unmatched: true },
+  ]);
+  assert.deepEqual(suggestGuests('Cab', parties).map((item) => item.name), [
+    'Andrew Cabindol', 'Jose Cabindol', 'Maria Cabindol',
+  ]);
+  assert.deepEqual(suggestGuests('Andy', parties).map((item) => item.name), ['Andy Cabindol']);
+  assert.equal(suggestGuests('P', parties).some((item) => /plus one/i.test(item.name)), false);
+  const twoPlusOnes = partiesFromRows([
+    { party_id: 'bennett-ava', party_name: 'Ava Bennett', guest_name: 'Ava Bennett', extra_guests: '2' },
+  ]);
+  assert.deepEqual(suggestGuests('P', twoPlusOnes), []);
+});
+test('a saved sheet reply is shown with who is attending', () => {
+  const parties = partiesFromRows([
+    { party_id: 'cabindol-andrew', party_name: 'Andrew Cabindol', guest_name: 'Andrew Cabindol', also_known_as: 'Andy Cabindol', extra_guests: '1', rsvp_received: 'TRUE', attending: 'Yes', reply_name: 'Jordan Lee: Attending' },
+  ]);
+  const match = matchParties('Andy Cabindol', parties)[0];
+  assert.equal(match.replied, true);
+  assert.equal(match.members[0].name, 'Andrew Cabindol');
+  assert.equal(match.members[0].attending, true);
+  assert.equal(match.members[1].name, 'Jordan Lee');
+  assert.equal(match.members[1].plusOne, true);
+  assert.equal(match.members[1].attending, true);
 });
 test('guest import validates unique party and member IDs and normalizes search names', () => {
   const rows = prepareInvitations({ parties: [party] });

@@ -1,12 +1,14 @@
+import { matchParties, normalizeName } from './matching.js';
+
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Cache-Control': 'no-store',
 };
+
 const encoder = new TextEncoder();
-export const normalizeName = (value) => value.normalize('NFKD').replace(/\p{M}/gu, '')
-  .toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
+export { normalizeName };
 const toBase64 = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fromBase64 = (value) => Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
 const reply = (data, status = 200) => Response.json(data, { status, headers: cors });
@@ -21,6 +23,12 @@ export function createHandler({ database, secret, now = Date.now }) {
       id: party.id, members: party.members.map((member) => member.id), expires: now() + 30 * 60 * 1000,
     })));
     return `${payload}.${await signature(payload)}`;
+  }
+  async function sheetSession(token) {
+    const id = token.slice('sheet:'.length).trim();
+    if (!id || id.length > 80) return null;
+    const party = await database.getParty(id);
+    return party ? { id: party.id, members: party.members.map((member) => member.id) } : null;
   }
   async function verify(token) {
     if (typeof token !== 'string' || token.length > 10000) return null;
@@ -73,8 +81,10 @@ export function createHandler({ database, secret, now = Date.now }) {
         }))) });
       }
 
-      // The signed, short-lived lookup token authorizes only this invitation's reply.
-      const session = await verify(body.token);
+      // A signed lookup token, or a sheet invitation id confirmed against the guest list.
+      const session = typeof body.token === 'string' && body.token.startsWith('sheet:')
+        ? await sheetSession(body.token)
+        : await verify(body.token);
       if (!session) return reply({ error: 'Please find your invitation again before replying.' }, 401);
       const party = await database.getParty(session.id);
       if (!party || JSON.stringify(session.members) !== JSON.stringify(party.members.map((member) => member.id))) {
@@ -87,9 +97,17 @@ export function createHandler({ database, secret, now = Date.now }) {
         return reply({ error: 'Please choose attending or unable to attend for every invited guest.' }, 400);
       }
       if (typeof body.wishes !== 'string' || body.wishes.length > 2000) return reply({ error: 'Please keep your note to 2,000 characters or fewer.' }, 400);
+      const savedResponses = [];
+      for (const member of party.members) {
+        const answer = responses.find((r) => r.id === member.id);
+        const named = typeof answer.name === 'string' ? answer.name.trim() : '';
+        if (member.plusOne && answer.attending && (named.length < 2 || named.length > 80)) {
+          return reply({ error: 'Please add your guest’s name, or mark that plus one as unable to attend.' }, 400);
+        }
+        savedResponses.push({ id: member.id, name: member.plusOne && named ? named : member.name, attending: answer.attending, plusOne: Boolean(member.plusOne) });
+      }
       await database.save({
-        invitation_id: party.id,
-        responses: party.members.map((member) => ({ id: member.id, name: member.name, attending: responses.find((r) => r.id === member.id).attending })),
+        invitation_id: party.id, party_label: party.label, responses: savedResponses,
         wishes: body.wishes.trim(), updated_at: new Date(now()).toISOString(),
       });
       return reply({ saved: true });
@@ -99,7 +117,8 @@ export function createHandler({ database, secret, now = Date.now }) {
   };
 }
 
-export function createDatabase(url, serviceKey, fetcher = fetch) {
+export function createDatabase(url, serviceKey, fetcher = fetch, sheet = null) {
+  let cache = { at: 0, parties: null };
   async function rest(path, options = {}) {
     const response = await fetcher(`${url}/rest/v1/${path}`, {
       ...options,
@@ -110,21 +129,33 @@ export function createDatabase(url, serviceKey, fetcher = fetch) {
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   }
+  async function parties() {
+    if (sheet?.configured && (!cache.parties || Date.now() - cache.at > 45000)) {
+      try {
+        const loaded = await sheet.loadParties();
+        if (loaded?.length) {
+          cache = { at: Date.now(), parties: loaded };
+          await rest('wedding_invitations?on_conflict=id', {
+            method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+            body: JSON.stringify(loaded.map(({ id, label, members, search_names }) => ({ id, label, members, search_names }))),
+          });
+        }
+      } catch { /* Use the last sheet snapshot, or the database copy. */ }
+    }
+    if (cache.parties) return cache.parties;
+    return rest('wedding_invitations?select=id,label,members,search_names&limit=1000');
+  }
   return {
-    async isOpen() { return (await rest('wedding_invitations?select=id&limit=1')).length > 0; },
+    async isOpen() { return (await parties()).length > 0; },
     allowRequest(p_key) { return rest('rpc/wedding_check_rate_limit', { method: 'POST', body: JSON.stringify({ p_key }) }); },
-    search(name) {
-      const params = new URLSearchParams({ select: 'id,label,members', search_names: `cs.{${JSON.stringify(name)}}`, limit: '5', order: 'label.asc' });
-      return rest(`wedding_invitations?${params}`);
-    },
-    async getParty(id) {
-      const params = new URLSearchParams({ select: 'id,label,members', id: `eq.${id}`, limit: '1' });
-      return (await rest(`wedding_invitations?${params}`))[0] || null;
-    },
-    save(data) {
-      return rest('wedding_rsvps?on_conflict=invitation_id', {
+    async search(name) { return matchParties(name, await parties()); },
+    async getParty(id) { return (await parties()).find((party) => party.id === id) || null; },
+    async save(data) {
+      await rest('wedding_rsvps?on_conflict=invitation_id', {
         method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(data),
       });
+      if (!sheet?.configured) return;
+      try { await sheet.writeRsvp(data); } catch { /* The reply is stored even if the sheet update is delayed. */ }
     },
   };
 }

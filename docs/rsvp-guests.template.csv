@@ -1,0 +1,4 @@
+party_id,party_name,guest_name,also_known_as,extra_guests,notes,rsvp_received,attending,reply_name,wishes,replied_at
+cabindol-andrew,Andrew Cabindol,Andrew Cabindol,"Andy Cabindol, Andy",1,Example: one named guest plus one unnamed plus one
+cabindol-parents,Jose & Maria Cabindol,Jose Cabindol,,0,A different invitation, even though the last name matches
+cabindol-parents,Jose & Maria Cabindol,Maria Cabindol,Mary Cabindol,,

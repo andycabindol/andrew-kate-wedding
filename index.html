@@ -23,16 +23,26 @@
       <div class="viewport-blur__layer viewport-blur__layer--6"></div>
     </div>
 
-    <header class="nav" id="nav">
+    <header class="nav nav--hidden" id="nav" inert aria-hidden="true">
       <div class="nav__inner">
-        <a href="#" class="nav__logo">Katie &amp; Andrew</a>
+        <a href="/" class="nav__logo">Katie &amp; Andrew</a>
 
         <nav class="nav__links" id="navLinks">
-          <a href="#gallery">Gallery</a>
-          <a href="#schedule">Schedule</a>
-          <a href="#venue">Venue</a>
-          <a href="#contact">Contact</a>
-          <a href="#rsvp" class="nav__rsvp-btn">RSVP</a>
+          <div class="nav__menu">
+            <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="venueMenu">
+              Venue
+              <svg class="nav__chevron" viewBox="0 0 256 256" aria-hidden="true">
+                <path fill="currentColor" d="M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z" />
+              </svg>
+            </button>
+            <div class="nav__dropdown" id="venueMenu">
+              <a href="/wedding.html">Wedding</a>
+              <a href="/reception.html">Reception</a>
+            </div>
+          </div>
+          <a href="/#schedule">Schedule</a>
+          <a href="/#contact">Contact</a>
+          <a href="/#rsvp" class="nav__rsvp-btn">RSVP</a>
         </nav>
 
         <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
@@ -42,11 +52,21 @@
       </div>
 
       <div class="nav__mobile" id="navMobile" aria-hidden="true">
-        <a href="#gallery">Gallery</a>
-        <a href="#schedule">Schedule</a>
-        <a href="#venue">Venue</a>
-        <a href="#contact">Contact</a>
-        <a href="#rsvp">RSVP</a>
+        <div class="nav__menu">
+          <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="venueMenuMobile">
+            Venue
+            <svg class="nav__chevron" viewBox="0 0 256 256" aria-hidden="true">
+              <path fill="currentColor" d="M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z" />
+            </svg>
+          </button>
+          <div class="nav__dropdown" id="venueMenuMobile">
+            <a href="/wedding.html">Wedding</a>
+            <a href="/reception.html">Reception</a>
+          </div>
+        </div>
+        <a href="/#schedule">Schedule</a>
+        <a href="/#contact">Contact</a>
+        <a href="/#rsvp">RSVP</a>
       </div>
     </header>
 
@@ -70,20 +90,27 @@
         </div>
       </section>
 
-      <section class="section save-the-date">
-        <div class="container save-the-date__grid">
-          <div class="save-the-date__text">
-            <h2 class="section-title">Save the Date</h2>
-            <p class="body-text">
-              We would love for you to join us in Ames, Iowa, on May 29, 2027, as we come together
-              in the sacrament of marriage. We're honored to share this special day with the people
-              we love the most and can't wait to celebrate with you!
-            </p>
-          </div>
-          <div class="save-the-date__card">
-            <p class="save-the-date__card-date">May 29, 2027</p>
-            <h6 class="save-the-date__card-location">Ames, IA</h6>
-            <a href="#rsvp" class="btn btn--dark">RSVP Now</a>
+      <section class="section letter" aria-labelledby="save-the-date-title">
+        <div class="letter-stage">
+          <div class="letter-stack">
+            <div class="letter-under" aria-hidden="true"></div>
+            <article class="letter">
+              <div class="letter__frame">
+                <p class="letter__kicker" id="save-the-date-title">Save the Date</p>
+                <p class="letter__salutation">Dear friends,</p>
+                <p class="letter__body">
+                  We would love for you to join us in Ames, Iowa, on May 29, 2027, as we come together
+                  in the sacrament of marriage. We're honored to share this special day with the people
+                  we love the most and can't wait to celebrate with you!
+                </p>
+                <p class="letter__close">With love,<br />Katie &amp; Andrew</p>
+                <div class="letter__meta">
+                  <p class="letter__date">May 29, 2027</p>
+                  <p class="letter__place">Ames, IA</p>
+                </div>
+                <a href="/#rsvp" class="btn btn--dark">RSVP Now</a>
+              </div>
+            </article>
           </div>
         </div>
       </section>
@@ -91,8 +118,8 @@
       <section class="section our-story">
         <div class="container our-story__grid">
           <div class="our-story__content">
-            <h2 class="section-title">Our Story</h2>
-            <h3 class="story-subtitle">Love at first dance…</h3>
+            <p class="label">Our Story</p>
+            <h2 class="section-title">Love at first dance</h2>
             <p class="body-text">
               We met while attending Iowa State University during the spring of 2024. After we were
               briefly introduced in the student lounge at St. Thomas Aquinas, our church in Ames, we
@@ -115,132 +142,11 @@
         </div>
       </section>
 
-      <section class="section gallery" id="gallery">
-        <div class="container">
-          <p class="label">Engagement</p>
-          <h2 class="section-heading section-heading--center">Our Photos</h2>
-          <p class="body-text body-text--center gallery__intro">
-            A few of our favorite moments from our engagement season.
-          </p>
-          <div class="gallery__grid">
-            <figure class="gallery__item gallery__item--wide">
-              <img src="/images/gallery/engagement-1.jpeg" alt="Katie and Andrew engagement photo" />
-            </figure>
-            <figure class="gallery__item">
-              <img src="/images/gallery/engagement-2.jpeg" alt="Katie and Andrew engagement photo" />
-            </figure>
-            <figure class="gallery__item">
-              <img src="/images/gallery/engagement-3.jpeg" alt="Katie and Andrew engagement photo" />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <section class="section venue" id="venue">
-        <div class="container">
-          <p class="label">The Wedding</p>
-          <h2 class="section-heading section-heading--center">St. Thomas Aquinas Church</h2>
-
-          <div class="carousel" id="weddingCarousel">
-            <div class="carousel__track">
-              <div class="carousel__slide active">
-                <img
-                  src="/images/church/church-1.jpg"
-                  alt="Brick exterior and main entrance of St. Thomas Aquinas Catholic Church in Ames." loading="lazy"
-                />
-              </div>
-              <div class="carousel__slide">
-                <img
-                  src="/images/church/church-2.jpg"
-                  alt="Pews facing the altar beneath exposed roof beams in St. Thomas Aquinas Catholic Church." loading="lazy"
-                />
-              </div>
-              <div class="carousel__slide">
-                <img
-                  src="/images/church/church-3.jpg"
-                  alt="Blue stained-glass panels beside tall sanctuary windows at St. Thomas Aquinas Catholic Church." loading="lazy"
-                />
-              </div>
-            </div>
-            <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">
-              <img src="/images/arrow-left.svg" alt="" />
-            </button>
-            <button class="carousel__btn carousel__btn--next" aria-label="Next slide">
-              <img src="/images/arrow-right.svg" alt="" />
-            </button>
-          </div>
-
-          <div class="venue__info">
-            <p class="venue__address">2210 Lincoln Way, Ames, IA 50014</p>
-            <a
-              href="https://maps.google.com/?q=2210+Lincoln+Way,+Ames,+IA+50014"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="venue__map-link"
-            >
-              Find on the map
-            </a>
-            <span class="venue__credit">Photos: <a href="https://rdgusa.com/work/project/st-thomas-aquinas-catholic-church-ames" target="_blank" rel="noopener noreferrer">RDG Planning &amp; Design</a></span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section venue venue--reception" id="reception">
-        <div class="container">
-          <p class="label">The Reception</p>
-          <h2 class="section-heading section-heading--center">Raspberry Hill Bed &amp; Breakfast</h2>
-
-          <div class="carousel" id="receptionCarousel">
-            <div class="carousel__track">
-              <div class="carousel__slide active">
-                <img
-                  src="/images/reception/reception-1.jpeg"
-                  alt="A decorated reception table beneath tall wooden windows at Raspberry Hill." loading="lazy"
-                />
-              </div>
-              <div class="carousel__slide">
-                <img
-                  src="/images/reception/reception-2.jpeg"
-                  alt="Open-air pavilion at Raspberry Hill in Ames with a snow-covered lawn." loading="lazy"
-                />
-              </div>
-              <div class="carousel__slide">
-                <img
-                  src="/images/reception/reception-3.jpeg"
-                  alt="Cottage at Raspberry Hill surrounded by flowers and green foliage." loading="lazy"
-                />
-              </div>
-            </div>
-            <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">
-              <img src="/images/arrow-left.svg" alt="" />
-            </button>
-            <button class="carousel__btn carousel__btn--next" aria-label="Next slide">
-              <img src="/images/arrow-right.svg" alt="" />
-            </button>
-          </div>
-
-          <div class="venue__info">
-            <p class="venue__address">5500 240th St, Ames, IA 50014</p>
-            <a
-              href="https://maps.google.com/?q=5500+240th+St,+Ames,+IA+50014"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="venue__map-link"
-            >
-              Find on the map
-            </a>
-            <span class="venue__credit">Photos: <a href="https://www.raspberryhillbnb.com/celebrations" target="_blank" rel="noopener noreferrer">Raspberry Hill</a></span>
-          </div>
-        </div>
-      </section>
-
       <section class="section lodging">
         <div class="container">
-          <p class="label label--caslon">The Lodging</p>
           <h2 class="section-heading section-heading--center">Where to Stay</h2>
           <p class="body-text body-text--center lodging__intro">
-            We've picked a few favourites within easy reach of the venue. Book early – May is a
-            busy season in Ames!
+            Book early – May is a busy season in Ames!
           </p>
           <h6 class="lodging__help">
             We may reserve blocks of hotel rooms — details coming soon. If you need help finding the
@@ -249,6 +155,9 @@
 
           <div class="lodging__grid lodging__grid--three">
             <article class="lodging-card">
+              <div class="lodging-card__image">
+                <img src="/images/lodging/gateway.jpg" alt="Entrance of the Gateway Hotel and Conference Center in Ames." />
+              </div>
               <div class="lodging-card__body">
                 <h4 class="lodging-card__title">Gateway Hotel</h4>
                 <p class="body-text">
@@ -256,7 +165,7 @@
                   near campus.
                 </p>
                 <a
-                  href="https://www.gatewayhotel.com/"
+                  href="https://www.hotels.com/ho149369/gateway-hotel-and-conference-center-ames-united-states-of-america/?chkin=2026-07-05&chkout=2026-07-06&x_pwa=1&rfrr=HSR&pwa_ts=1781643430824&referrerUrl=aHR0cHM6Ly93d3cuaG90ZWxzLmNvbS9Ib3RlbC1TZWFyY2g%3D&useRewards=false&rm1=a2&regionId=6059972&destination=Ames%2C+Iowa%2C+United+States+of+America&destType=MARKET&selected=700084&latLong=42.022911%2C-93.61039&sort=RECOMMENDED&top_dp=100&top_cur=USD&userIntent=&selectedRoomType=428608&selectedRatePlan=1493733&expediaPropertyId=700084&searchId=65ce6ef6-70dc-49cb-9348-3fb5090f58c0"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="lodging-card__book"
@@ -266,6 +175,9 @@
             </article>
 
             <article class="lodging-card">
+              <div class="lodging-card__image">
+                <img src="/images/lodging/hilton.jpg" alt="Exterior of Hilton Garden Inn in Ames." />
+              </div>
               <div class="lodging-card__body">
                 <h4 class="lodging-card__title">Hilton Garden Inn</h4>
                 <p class="body-text">
@@ -273,7 +185,7 @@
                   University.
                 </p>
                 <a
-                  href="https://www.hilton.com/en/hotels/amagigi-hilton-garden-inn-ames/"
+                  href="https://www.hotels.com/ho278893/hilton-garden-inn-ames-ames-united-states-of-america/?chkin=2026-07-05&chkout=2026-07-06&x_pwa=1&rfrr=HSR&pwa_ts=1781643430827&referrerUrl=aHR0cHM6Ly93d3cuaG90ZWxzLmNvbS9Ib3RlbC1TZWFyY2g%3D&useRewards=false&rm1=a2&regionId=6059972&destination=Ames%2C+Iowa%2C+United+States+of+America&destType=MARKET&selected=700084&latLong=42.022911%2C-93.61039&sort=RECOMMENDED&top_dp=128&top_cur=USD&userIntent=&selectedRoomType=200262171&selectedRatePlan=222070803&expediaPropertyId=2366812&searchId=65ce6ef6-70dc-49cb-9348-3fb5090f58c0"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="lodging-card__book"
@@ -283,13 +195,16 @@
             </article>
 
             <article class="lodging-card">
+              <div class="lodging-card__image">
+                <img src="/images/lodging/americinn.jpg" alt="Entrance of AmericInn by Wyndham in Ames." />
+              </div>
               <div class="lodging-card__body">
                 <h4 class="lodging-card__title">AmericInn</h4>
                 <p class="body-text">
                   A comfortable and affordable option for out-of-town guests visiting Ames.
                 </p>
                 <a
-                  href="https://www.wyndhamhotels.com/americinn/ames-iowa/americinn-by-wyndham-ames/overview"
+                  href="https://www.hotels.com/ho511348/americinn-by-wyndham-ames-ames-united-states-of-america/?chkin=2026-07-05&chkout=2026-07-06&x_pwa=1&rfrr=HSR&pwa_ts=1781643432447&referrerUrl=aHR0cHM6Ly93d3cuaG90ZWxzLmNvbS9Ib3RlbC1TZWFyY2g%3D&useRewards=false&rm1=a2&regionId=6059972&destination=Ames%2C+Iowa%2C+United+States+of+America&destType=MARKET&selected=700084&latLong=42.022911%2C-93.61039&sort=RECOMMENDED&top_dp=95&top_cur=USD&userIntent=&selectedRoomType=201267028&selectedRatePlan=389815663&expediaPropertyId=561156&searchId=65ce6ef6-70dc-49cb-9348-3fb5090f58c0"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="lodging-card__book"
@@ -331,10 +246,6 @@
         <div class="container">
           <p class="label">Schedule</p>
           <h2 class="section-heading section-heading--center">Our day</h2>
-          <p class="body-text body-text--center schedule__intro">
-            It's still too early to tell the exact timing of things, but here is the order of events
-            we have planned.
-          </p>
 
           <div class="timeline">
             <div class="timeline__item">
@@ -438,12 +349,8 @@
       <section class="section rsvp" id="rsvp">
         <div class="container rsvp__grid">
           <div class="rsvp__form-wrap">
-            <p class="label">RSVP</p>
-            <h2 class="section-heading">Will You Be There?</h2>
-            <p class="body-text rsvp__intro">
-              Kindly reply by <span data-rsvp-deadline>October 30, 2026</span>.
-              We look forward to celebrating with you.
-            </p>
+            <h2 class="section-heading">RSVP by October 31st, 2026</h2>
+            <p class="rsvp-help">Need a hand? <a href="mailto:katieferg93@gmail.com">Email Katie</a></p>
 
             <div id="rsvpLoadingStep" class="rsvp-state" role="status">
               <p class="rsvp-note">Checking invitations…</p>
@@ -459,42 +366,70 @@
               <button type="button" id="rsvpRetry" class="btn btn--dark">Try again</button>
             </div>
             <div id="rsvpSearchStep" hidden>
-              <p class="rsvp-step">01 / Find your invitation</p>
-              <form id="rsvpLookupForm" class="rsvp-lookup">
-                <div class="form-group">
-                  <label for="guestSearch">Your full name</label>
-                  <input type="search" id="guestSearch" name="guestSearch" placeholder="First and last name"
-                    autocomplete="name" minlength="3" maxlength="120" required aria-describedby="guestSearchHelp" />
-                  <p id="guestSearchHelp" class="rsvp-note">Use the name on your invitation.</p>
+              <div class="rsvp-step-block is-open" id="rsvpFindBlock">
+                <button type="button" class="rsvp-step" id="rsvpFindHeading">01 / Find your invitation</button>
+                <div class="rsvp-step-block__body">
+                  <form id="rsvpLookupForm" class="rsvp-lookup">
+                    <div class="form-group guest-lookup">
+                      <span class="guest-lookup__icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                        </svg>
+                      </span>
+                      <input type="search" id="guestSearch" name="guestSearch" placeholder="First and Last name" aria-label="First and Last name"
+                        autocomplete="off" minlength="3" maxlength="120" required role="combobox"
+                        aria-autocomplete="list" aria-controls="guestResults" aria-expanded="false" />
+                      <ul id="guestResults" class="guest-results" role="listbox" aria-label="Matching names" data-lenis-prevent hidden></ul>
+                    </div>
+                  </form>
                 </div>
-                <button type="submit" class="btn btn--dark btn--full">Find invitation</button>
-              </form>
-              <ul id="guestResults" class="guest-results" aria-label="Matching invitations" hidden></ul>
-            </div>
-            <div id="rsvpConfirmStep" hidden>
-              <p class="rsvp-step">02 / Your reply</p>
-              <h3 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h3>
-              <p class="body-text rsvp__confirm-intro">Please reply for each person on your invitation.</p>
+              </div>
               <form class="rsvp-form" id="rsvpForm">
-                <div id="partyMembers"></div>
-                <div class="form-group">
-                  <label for="wishes">A note for us <span class="form-optional">optional</span></label>
-                  <textarea id="wishes" name="wishes" rows="4" maxlength="2000" placeholder="Your wishes, a little love, anything you’d like to share…"></textarea>
+                <div class="rsvp-step-block" id="rsvpConfirmBlock">
+                  <button type="button" class="rsvp-step" id="rsvpConfirmHeading">02 / Confirm your spot</button>
+                  <div class="rsvp-step-block__body" id="rsvpConfirmBody" hidden>
+                    <h3 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h3>
+                    <p class="body-text rsvp__confirm-intro">Please reply for everyone on this invitation, including any plus one.</p>
+                    <div id="partyMembers"></div>
+                    <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
+                    <button type="button" class="btn btn--secondary btn--full rsvp-change" id="changePartyBtn">Find a different invitation</button>
+                  </div>
+                  <div class="rsvp-step-block__body" id="rsvpAlreadyBody" hidden>
+                    <p class="rsvp-already-party" id="rsvpAlreadyParty"></p>
+                    <h3 class="rsvp-state__title" id="rsvpAlreadyHeading" tabindex="-1">Looks like you’ve already RSVP’d.</h3>
+                    <p class="body-text" id="rsvpAlreadyCount"></p>
+                    <ul id="rsvpAlreadySummary" class="rsvp-summary" aria-label="Saved RSVP"></ul>
+                    <p class="rsvp-note">Need to change this? <a href="mailto:katieferg93@gmail.com">Email Katie</a> and we’ll update your reply.</p>
+                    <button type="button" id="rsvpAlreadyBack" class="btn btn--secondary btn--full">Find a different invitation</button>
+                  </div>
                 </div>
-                <button type="submit" id="rsvpSubmit" class="btn btn--dark btn--full">Confirm RSVP</button>
-                <button type="button" class="btn btn--text btn--full" id="changePartyBtn">Find a different invitation</button>
+                <div class="rsvp-step-block" id="rsvpNoteBlock">
+                  <button type="button" class="rsvp-step" id="rsvpWishesHeading">03 / Wishes</button>
+                  <div class="rsvp-step-block__body" id="rsvpNoteBody" hidden>
+                    <ul id="rsvpWishesSummary" class="rsvp-summary" aria-label="Your RSVP"></ul>
+                    <div class="form-group">
+                      <label for="wishes">A note for us <span class="form-optional">optional</span></label>
+                      <textarea id="wishes" name="wishes" rows="4" maxlength="2000" placeholder="Your wishes, a little love, anything you’d like to share…"></textarea>
+                    </div>
+                    <button type="submit" id="rsvpSubmit" class="btn btn--dark btn--full">Confirm RSVP</button>
+                  </div>
+                </div>
               </form>
             </div>
             <div id="rsvpSuccessStep" class="rsvp-state rsvp-state--success" hidden>
-              <span class="rsvp-success-mark" aria-hidden="true">✓</span>
-              <h3 class="rsvp-state__title" id="rsvpSuccessHeading" tabindex="-1">Your reply is saved.</h3>
-              <p class="body-text">Thank you for letting us know.</p>
+              <h3 class="rsvp-state__title rsvp-success-message" id="rsvpSuccessHeading" tabindex="-1">
+                <span class="rsvp-success-mark" aria-hidden="true">
+                  <svg viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z" /></svg>
+                </span>
+                <span class="rsvp-success-copy">
+                  <span id="rsvpSuccessMessage"></span>
+                  <span id="rsvpSuccessDetail" class="rsvp-success-detail"></span>
+                </span>
+              </h3>
               <ul id="rsvpSummary" class="rsvp-summary" aria-label="Your saved RSVP"></ul>
-              <p class="rsvp-note">Plans change. You can find your invitation again to update your reply.</p>
-              <button type="button" id="rsvpAgain" class="btn btn--text">Back to invitations</button>
+              <p class="rsvp-note">If plans change, you can <button type="button" id="rsvpEditReply" class="rsvp-inline-link">update your RSVP here</button> or <a href="mailto:katieferg93@gmail.com">email Katie</a>.</p>
             </div>
             <p id="rsvpStatus" class="rsvp-status" role="status" aria-live="polite" aria-atomic="true"></p>
-            <p class="rsvp-help">Need a hand? <a href="mailto:katieferg93@gmail.com">Email Katie</a></p>
             <noscript><p class="body-text">Please enable JavaScript to RSVP, or email Katie for help.</p></noscript>
           </div>
 
@@ -519,7 +454,10 @@
             <div class="accordion__item">
               <button class="accordion__trigger" aria-expanded="false">
                 <span>When should I RSVP by?</span>
-                <span class="accordion__icon"></span>
+                <span class="accordion__icon" aria-hidden="true">
+                  <svg class="accordion__plus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H134v82a6,6,0,0,1-12,0V134H40a6,6,0,0,1,0-12h82V40a6,6,0,0,1,12,0v82h82A6,6,0,0,1,222,128Z" /></svg>
+                  <svg class="accordion__minus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z" /></svg>
+                </span>
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
@@ -532,7 +470,10 @@
             <div class="accordion__item">
               <button class="accordion__trigger" aria-expanded="false">
                 <span>Can I bring a plus-one?</span>
-                <span class="accordion__icon"></span>
+                <span class="accordion__icon" aria-hidden="true">
+                  <svg class="accordion__plus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H134v82a6,6,0,0,1-12,0V134H40a6,6,0,0,1,0-12h82V40a6,6,0,0,1,12,0v82h82A6,6,0,0,1,222,128Z" /></svg>
+                  <svg class="accordion__minus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z" /></svg>
+                </span>
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
@@ -546,7 +487,10 @@
             <div class="accordion__item">
               <button class="accordion__trigger" aria-expanded="false">
                 <span>Can I receive communion if I am not Catholic?</span>
-                <span class="accordion__icon"></span>
+                <span class="accordion__icon" aria-hidden="true">
+                  <svg class="accordion__plus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H134v82a6,6,0,0,1-12,0V134H40a6,6,0,0,1,0-12h82V40a6,6,0,0,1,12,0v82h82A6,6,0,0,1,222,128Z" /></svg>
+                  <svg class="accordion__minus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z" /></svg>
+                </span>
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
@@ -563,7 +507,10 @@
             <div class="accordion__item">
               <button class="accordion__trigger" aria-expanded="false">
                 <span>Is there parking at the venue?</span>
-                <span class="accordion__icon"></span>
+                <span class="accordion__icon" aria-hidden="true">
+                  <svg class="accordion__plus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H134v82a6,6,0,0,1-12,0V134H40a6,6,0,0,1,0-12h82V40a6,6,0,0,1,12,0v82h82A6,6,0,0,1,222,128Z" /></svg>
+                  <svg class="accordion__minus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z" /></svg>
+                </span>
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
@@ -590,11 +537,12 @@
 
     <footer class="footer">
       <div class="container footer__inner">
-        <a href="#" class="footer__logo">Katie &amp; Andrew</a>
+        <a href="/" class="footer__logo">Katie &amp; Andrew</a>
         <nav class="footer__links">
-          <a href="#invitation">Invitation</a>
-          <a href="#schedule">Schedule</a>
-          <a href="#rsvp">RSVP</a>
+          <a href="/wedding.html">Wedding</a>
+          <a href="/reception.html">Reception</a>
+          <a href="/#schedule">Schedule</a>
+          <a href="/#rsvp">RSVP</a>
         </nav>
       </div>
     </footer>

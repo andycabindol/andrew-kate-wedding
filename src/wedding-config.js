@@ -2,6 +2,7 @@ export const weddingConfig = {
   rsvpDeadline: 'October 30, 2026',
   contactEmail: 'katieferg93@gmail.com',
   rsvpEndpoint: 'https://uyhzqldiukfmugasiapi.supabase.co/functions/v1/wedding-rsvp',
+  guestSheetCsvUrl: 'https://docs.google.com/spreadsheets/d/1sV27HMCN8Ed9fL3sgCSeqNR4RhjGQ3alWkBz6gbONhY/export?format=csv&gid=2002847235',
   registries: [
     { name: 'The Knot', url: 'https://registry.theknot.com/andrew-torres-katie-ferguson-may-2027-ia/78612430' },
     // Add the couple’s direct Amazon and Target registry URLs here when ready.

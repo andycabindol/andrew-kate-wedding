@@ -28,10 +28,11 @@ const heroImage = document.querySelector('.hero__image');
 
 const HERO_PARALLAX_START = 80;
 const HERO_PARALLAX_TRAVEL = 140;
-const NAV_HIDE_AFTER = 120;
+const NAV_SHOW_AFTER = 16;
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-nav.classList.add('nav--hero');
+const hasHero = Boolean(hero);
+if (hasHero) nav.classList.add('nav--hero');
 
 function updateHeroParallax() {
   if (!hero || !heroImage || prefersReducedMotion) return;
@@ -46,21 +47,22 @@ function updateHeroParallax() {
 function updateNav() {
   const scroll = lenis.scroll;
   const scrolled = scroll > 50;
-  nav.classList.toggle('nav--scrolled', scrolled);
-
   const mobileOpen = navMobile.classList.contains('open');
 
-  if (!prefersReducedMotion) {
-    if (scroll <= NAV_HIDE_AFTER || mobileOpen) {
-      nav.classList.remove('nav--hidden');
-    } else if (lenis.direction < 0) {
-      nav.classList.remove('nav--hidden');
-    } else if (lenis.direction > 0) {
-      nav.classList.add('nav--hidden');
-    }
-  } else {
-    nav.classList.remove('nav--hidden');
+  if (!hasHero) {
+    nav.classList.add('nav--scrolled');
+    nav.classList.remove('nav--hidden', 'nav--hero');
+    nav.inert = false;
+    nav.setAttribute('aria-hidden', 'false');
+    return;
   }
+
+  nav.classList.toggle('nav--scrolled', scrolled);
+
+  const hidden = scroll <= NAV_SHOW_AFTER && !mobileOpen;
+  nav.classList.toggle('nav--hidden', hidden);
+  nav.inert = hidden;
+  nav.setAttribute('aria-hidden', String(hidden));
 
   if (hero) {
     const heroBottom = hero.offsetTop + hero.offsetHeight;
@@ -86,9 +88,34 @@ navToggle.addEventListener('click', () => {
   navToggle.setAttribute('aria-expanded', isOpen);
   navMobile.setAttribute('aria-hidden', !isOpen);
 
-  if (isOpen) {
-    nav.classList.remove('nav--hidden');
-  }
+  updateNav();
+});
+
+function closeVenueMenus() {
+  document.querySelectorAll('.nav__menu.is-open').forEach((menu) => {
+    menu.classList.remove('is-open');
+    menu.querySelector('.nav__menu-btn')?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+document.querySelectorAll('.nav__menu').forEach((menu) => {
+  const button = menu.querySelector('.nav__menu-btn');
+  if (!button) return;
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const open = !menu.classList.contains('is-open');
+    closeVenueMenus();
+    menu.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+  });
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.nav__menu')) closeVenueMenus();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeVenueMenus();
 });
 
 navMobile.querySelectorAll('a').forEach((link) => {
@@ -97,6 +124,8 @@ navMobile.querySelectorAll('a').forEach((link) => {
     navToggle.classList.remove('active');
     navToggle.setAttribute('aria-expanded', 'false');
     navMobile.setAttribute('aria-hidden', 'true');
+    closeVenueMenus();
+    updateNav();
   });
 });
 
@@ -158,16 +187,18 @@ if (accordion) {
 initWeddingContent();
 initRsvp();
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+// Smooth scroll for same-page anchors, including root-relative `/#section` links.
+document.querySelectorAll('a[href^="#"], a[href^="/#"]').forEach((anchor) => {
   anchor.addEventListener('click', (e) => {
     const href = anchor.getAttribute('href');
-    if (!href || href === '#') return;
+    if (!href || href === '#' || href === '/#') return;
 
-    const target = document.querySelector(href);
+    const hash = href.startsWith('/#') ? href.slice(1) : href;
+    const target = document.querySelector(hash);
     if (!target) return;
 
     e.preventDefault();
+    if (location.hash !== hash) history.pushState(null, '', hash);
     lenis.scrollTo(target, {
       offset: -nav.offsetHeight,
       duration: 1.4,
