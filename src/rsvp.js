@@ -634,7 +634,7 @@ export function initRsvp(lenis) {
     const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
     if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
     const title = byId('rsvpTitle');
-    if (title && title.textContent === 'RSVP') title.textContent = 'Welcome';
+    if (title && title.textContent === 'Confirm your RSVP') title.textContent = 'Welcome';
     byId('rsvpWelcome').hidden = false;
     byId('rsvpHelp').hidden = true;
     searchForm.hidden = true;

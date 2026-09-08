@@ -477,6 +477,8 @@ body.subpage .nav {
 .nav__mobile .nav__dropdown a {
   padding: 0;
   text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
 .nav__mobile .nav__menu:hover .nav__dropdown,
@@ -854,6 +856,10 @@ article.letter {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.carousel__slide img.is-sanctuary {
+  object-position: center 22%;
 }
 
 .carousel__btn {
