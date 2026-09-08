@@ -12,8 +12,53 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-session');
+          if (!new URLSearchParams(location.search).has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
+            document.documentElement.classList.add('is-unlocked');
+          } else {
+            document.documentElement.classList.add('is-locked');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('is-locked');
+        }
+      })();
+    </script>
   </head>
   <body>
+    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
+      <div class="site-gate__enter">
+        <p class="site-gate__kicker">Private invitation</p>
+        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
+        <form class="site-gate__form" autocomplete="off">
+          <label class="site-gate__label" for="siteGatePassword">Password</label>
+          <input
+            class="site-gate__input"
+            id="siteGatePassword"
+            name="password"
+            type="password"
+            inputmode="numeric"
+            autocomplete="current-password"
+            maxlength="12"
+            required
+          />
+          <button class="site-gate__submit" type="submit">Enter</button>
+          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
+        </form>
+      </div>
+      <div class="site-gate__load" hidden>
+        <div class="site-gate__names">
+          <span class="site-gate__name site-gate__name--katie">Katie</span>
+          <span class="site-gate__mark">&amp;</span>
+          <span class="site-gate__name site-gate__name--andrew">Andrew</span>
+        </div>
+        <p class="site-gate__percent" aria-live="polite">0%</p>
+        <div class="site-gate__meter" aria-hidden="true"><span class="site-gate__fill"></span></div>
+      </div>
+    </div>
+    <template id="siteContent">
     <div class="viewport-blur" aria-hidden="true">
       <div class="viewport-blur__layer viewport-blur__layer--1"></div>
       <div class="viewport-blur__layer viewport-blur__layer--2"></div>
@@ -83,8 +128,8 @@
         <div class="hero__content">
           <div class="hero__card">
             <div class="hero__card-inner">
-              <h1 class="hero__title">Katie &amp; Andrew</h1>
-              <p class="hero__date">May 29, 2027</p>
+              <h1 class="hero__title"><span class="hero-mask"><span class="hero-mask__line">Katie &amp; Andrew</span></span></h1>
+              <p class="hero__date"><span class="hero-mask"><span class="hero-mask__line">May 29, 2027</span></span></p>
             </div>
           </div>
         </div>
@@ -93,11 +138,10 @@
       <section class="section letter" aria-labelledby="save-the-date-title">
         <div class="letter-stage">
           <div class="letter-stack">
-            <div class="letter-under" aria-hidden="true"></div>
             <article class="letter">
               <div class="letter__frame">
                 <p class="letter__kicker" id="save-the-date-title">Save the Date</p>
-                <p class="letter__salutation">Dear friends,</p>
+                <p class="letter__salutation">Dear friends &amp; family,</p>
                 <p class="letter__body">
                   We would love for you to join us in Ames, Iowa, on May 29, 2027, as we come together
                   in the sacrament of marriage. We're honored to share this special day with the people
@@ -249,18 +293,18 @@
 
           <div class="timeline">
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">2:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Nuptial Mass</h3>
                 <p class="body-text">
-                  Mass will begin at Xpm at St. Thomas Aquinas. Please arrive by X (15 minutes in
-                  advance) so our ushers can find you a seat before the ceremony begins.
+                  Mass will begin at 2:00 PM at St. Thomas Aquinas. Please arrive by 1:45 PM so our
+                  ushers can find you a seat before the ceremony begins.
                 </p>
               </div>
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">4:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Cocktail Hour</h3>
                 <p class="body-text">
@@ -271,7 +315,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">5:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Dinner</h3>
                 <p class="body-text">
@@ -282,7 +326,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">6:15 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Speeches</h3>
                 <p class="body-text">
@@ -293,7 +337,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">7:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Cake &amp; Dessert</h3>
                 <p class="body-text">Details to come!</p>
@@ -301,22 +345,22 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">7:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Dance</h3>
                 <p class="body-text">
                   The dance floor will open with our first dance. After that, it's all yours. Our
-                  DJ will keep the jams rolling until xpm.
+                  DJ will keep the jams rolling until 10:00 PM.
                 </p>
               </div>
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">TBD</span>
+              <span class="timeline__time">10:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Ending</h3>
                 <p class="body-text">
-                  The reception will wrap up at xpm. We hope that you'll have had a great evening of
+                  The reception will wrap up at 10:00 PM. We hope that you'll have had a great evening of
                   food, friendship, and tearing up the dance floor.
                 </p>
               </div>
@@ -329,7 +373,7 @@
         <div class="container">
           <div class="gifts__card">
             <h2 class="section-heading section-heading--center">Gift Registry</h2>
-            <p class="body-text body-text--center">
+            <p class="body-text body-text--center gifts__intro">
               Sharing our wedding day with you is what matters most to us. If you would like to give
               a gift, a contribution to our registry would be greatly appreciated.
             </p>
@@ -339,9 +383,10 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 class="gifts__link"
-                >The Knot</a
+                >Open Registry</a
               >
             </div>
+            <div class="gifts__items" aria-live="polite"></div>
           </div>
         </div>
       </section>
@@ -349,8 +394,8 @@
       <section class="section rsvp" id="rsvp">
         <div class="container rsvp__grid">
           <div class="rsvp__form-wrap">
-            <h2 class="section-heading">RSVP by October 31st, 2026</h2>
-            <p class="rsvp-help">Need a hand? <a href="mailto:katieferg93@gmail.com">Email Katie</a></p>
+            <h2 class="section-heading">RSVP Below!</h2>
+            <p class="rsvp-help">Please RSVP by October 31st, 2026. Need help? <a href="mailto:katieferg93@gmail.com">Email Katie</a></p>
 
             <div id="rsvpLoadingStep" class="rsvp-state" role="status">
               <p class="rsvp-note">Checking invitations…</p>
@@ -519,17 +564,29 @@
                 </p>
               </div>
             </div>
+
+            <div class="accordion__item">
+              <button class="accordion__trigger" aria-expanded="false">
+                <span>Can I bring outside alcohol?</span>
+                <span class="accordion__icon" aria-hidden="true">
+                  <svg class="accordion__plus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H134v82a6,6,0,0,1-12,0V134H40a6,6,0,0,1,0-12h82V40a6,6,0,0,1,12,0v82h82A6,6,0,0,1,222,128Z" /></svg>
+                  <svg class="accordion__minus" viewBox="0 0 256 256"><path fill="currentColor" d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z" /></svg>
+                </span>
+              </button>
+              <div class="accordion__panel">
+                <p class="body-text">
+                  We kindly ask that guests not bring outside alcohol. Drinks will be provided at the
+                  reception, and our venue isn’t able to allow outside beverages.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="section contact" id="contact">
         <div class="container contact__inner">
-          <h2 class="section-heading section-heading--center">Get in Touch</h2>
-          <p class="body-text body-text--center">
-            Have a question we haven't answered? Want to chat about travel plans or anything else?
-            We'd love to hear from you.
-          </p>
+          <h2 class="section-heading section-heading--center">Still have more questions?</h2>
           <a href="mailto:katieferg93@gmail.com" class="contact__email">katieferg93@gmail.com</a>
         </div>
       </section>
@@ -546,6 +603,7 @@
         </nav>
       </div>
     </footer>
+    </template>
 
     <script type="module" src="/src/main.js"></script>
   </body>

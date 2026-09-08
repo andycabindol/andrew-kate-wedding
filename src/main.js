@@ -1,5 +1,6 @@
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
+import { initSiteGate } from './gate.js';
 import { initRsvp } from './rsvp.js';
 import { initWeddingContent } from './wedding-config.js';
 
@@ -17,9 +18,21 @@ function raf(time) {
 }
 
 requestAnimationFrame(raf);
+lenis.stop();
 
-// Navigation scroll effect
+function mountSite() {
+  const template = document.getElementById('siteContent');
+  if (!template || document.getElementById('nav')) return;
+  document.body.append(template.content);
+}
+
+let updateNav = () => {};
+
+function startSite() {
+  mountSite();
+
 const nav = document.getElementById('nav');
+if (!nav) return;
 const navToggle = document.getElementById('navToggle');
 const navMobile = document.getElementById('navMobile');
 const hero = document.querySelector('.hero');
@@ -35,7 +48,7 @@ const hasHero = Boolean(hero);
 if (hasHero) nav.classList.add('nav--hero');
 
 function updateHeroParallax() {
-  if (!hero || !heroImage || prefersReducedMotion) return;
+  if (!hero || !heroImage || prefersReducedMotion || !hero.classList.contains('is-revealed')) return;
 
   const heroHeight = hero.offsetHeight;
   const progress = Math.min(Math.max(lenis.scroll / heroHeight, 0), 1);
@@ -44,7 +57,7 @@ function updateHeroParallax() {
   heroImage.style.transform = `translate3d(0, ${y}px, 0) scale(1.08)`;
 }
 
-function updateNav() {
+updateNav = function updateNav() {
   const scroll = lenis.scroll;
   const scrolled = scroll > 50;
   const mobileOpen = navMobile.classList.contains('open');
@@ -205,3 +218,8 @@ document.querySelectorAll('a[href^="#"], a[href^="/#"]').forEach((anchor) => {
     });
   });
 });
+
+lenis.start();
+}
+
+initSiteGate(lenis, startSite).then(() => updateNav());

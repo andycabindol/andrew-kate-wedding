@@ -12,8 +12,53 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-session');
+          if (!new URLSearchParams(location.search).has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
+            document.documentElement.classList.add('is-unlocked');
+          } else {
+            document.documentElement.classList.add('is-locked');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('is-locked');
+        }
+      })();
+    </script>
   </head>
   <body class="subpage">
+    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
+      <div class="site-gate__enter">
+        <p class="site-gate__kicker">Private invitation</p>
+        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
+        <form class="site-gate__form" autocomplete="off">
+          <label class="site-gate__label" for="siteGatePassword">Password</label>
+          <input
+            class="site-gate__input"
+            id="siteGatePassword"
+            name="password"
+            type="password"
+            inputmode="numeric"
+            autocomplete="current-password"
+            maxlength="12"
+            required
+          />
+          <button class="site-gate__submit" type="submit">Enter</button>
+          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
+        </form>
+      </div>
+      <div class="site-gate__load" hidden>
+        <div class="site-gate__names">
+          <span class="site-gate__name site-gate__name--katie">Katie</span>
+          <span class="site-gate__mark">&amp;</span>
+          <span class="site-gate__name site-gate__name--andrew">Andrew</span>
+        </div>
+        <p class="site-gate__percent" aria-live="polite">0%</p>
+        <div class="site-gate__meter" aria-hidden="true"><span class="site-gate__fill"></span></div>
+      </div>
+    </div>
+    <template id="siteContent">
     <div class="viewport-blur" aria-hidden="true">
       <div class="viewport-blur__layer viewport-blur__layer--1"></div>
       <div class="viewport-blur__layer viewport-blur__layer--2"></div>
@@ -139,6 +184,7 @@
         </nav>
       </div>
     </footer>
+    </template>
 
     <script type="module" src="/src/main.js"></script>
   </body>
