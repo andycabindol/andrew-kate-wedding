@@ -1,4 +1,5 @@
 const SESSION_KEY = 'ka-session';
+const INTRO_KEY = 'ka-intro';
 const PASSWORD_HASH = '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e';
 
 function shouldReplay() {
@@ -19,6 +20,60 @@ function hasSession() {
 
 function rememberSession() {
   sessionStorage.setItem(SESSION_KEY, PASSWORD_HASH);
+}
+
+function shouldPlayIntro() {
+  try {
+    if (shouldReplay()) {
+      sessionStorage.removeItem(INTRO_KEY);
+      return true;
+    }
+    return sessionStorage.getItem(INTRO_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}
+
+function rememberIntro() {
+  sessionStorage.setItem(INTRO_KEY, '1');
+}
+
+function bindPeekPassword(input) {
+  let secret = '';
+  const paint = () => {
+    input.value = secret ? `${'•'.repeat(secret.length - 1)}${secret.slice(-1)}` : '';
+  };
+
+  input.addEventListener('beforeinput', (event) => {
+    if (event.inputType === 'insertText' && event.data) {
+      event.preventDefault();
+      const replacing = input.selectionStart === 0 && input.selectionEnd === input.value.length && input.value.length > 0;
+      secret = (replacing ? event.data : secret + event.data).slice(0, 12);
+      paint();
+      return;
+    }
+    if (event.inputType === 'deleteContentBackward') {
+      event.preventDefault();
+      const replacing = input.selectionStart === 0 && input.selectionEnd === input.value.length && input.value.length > 0;
+      secret = replacing ? '' : secret.slice(0, -1);
+      paint();
+      return;
+    }
+    if (event.inputType.startsWith('delete')) {
+      event.preventDefault();
+      secret = '';
+      paint();
+    }
+  });
+
+  input.addEventListener('paste', (event) => {
+    event.preventDefault();
+    const text = (event.clipboardData?.getData('text') || '').replace(/\s/g, '');
+    secret = (secret + text).slice(0, 12);
+    paint();
+  });
+
+  return () => secret;
 }
 
 async function digest(value) {
@@ -87,7 +142,7 @@ function dismiss(gate) {
   document.querySelectorAll('header, main, footer').forEach((el) => {
     el.inert = false;
   });
-  document.documentElement.classList.remove('is-locked');
+  document.documentElement.classList.remove('is-locked', 'is-intro');
 
   if (reduced) {
     document.documentElement.classList.add('is-unlocked');
@@ -127,9 +182,32 @@ function mountLockedSite(onReady) {
   onReady?.();
 }
 
+function playIntro(intro, lenis, onReady) {
+  lenis?.stop();
+  intro.querySelector('.site-gate__load')?.classList.add('is-on');
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      playMeet(intro).then(async () => {
+        rememberIntro();
+        mountLockedSite(onReady);
+        lenis?.start();
+        await dismiss(intro);
+        await revealHero();
+        resolve();
+      });
+    });
+  });
+}
+
 export function initSiteGate(lenis, onReady) {
   const gate = document.getElementById('siteGate');
   if (!gate) {
+    const intro = document.getElementById('siteIntro');
+    if (intro && shouldPlayIntro()) {
+      document.documentElement.classList.add('is-intro');
+      return playIntro(intro, lenis, onReady);
+    }
+    intro?.remove();
     mountLockedSite(onReady);
     revealHero();
     return Promise.resolve();
@@ -150,7 +228,7 @@ export function initSiteGate(lenis, onReady) {
   const input = gate.querySelector('.site-gate__input');
   const error = gate.querySelector('.site-gate__error');
   const enter = gate.querySelector('.site-gate__enter');
-  const load = gate.querySelector('.site-gate__load');
+  const password = bindPeekPassword(input);
 
   requestAnimationFrame(() => gate.classList.add('is-ready'));
   window.setTimeout(() => input?.focus(), 480);
@@ -158,7 +236,7 @@ export function initSiteGate(lenis, onReady) {
   return new Promise((resolve) => {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const hash = await digest(input.value.trim());
+      const hash = await digest(password().trim());
       if (!sameHash(hash, PASSWORD_HASH)) {
         error.hidden = false;
         input.setAttribute('aria-invalid', 'true');
@@ -172,18 +250,12 @@ export function initSiteGate(lenis, onReady) {
       error.hidden = true;
       input.setAttribute('aria-invalid', 'false');
       form.querySelector('button').disabled = true;
-      load.hidden = false;
-      load.classList.add('is-on');
-      enter.classList.add('is-done');
-      mountLockedSite(onReady);
-      await new Promise((done) => window.setTimeout(done, 180));
-
-      await playMeet(gate);
       rememberSession();
+      mountLockedSite(onReady);
+      enter.classList.add('is-done');
+      await new Promise((done) => window.setTimeout(done, 280));
       lenis?.start();
-      const leaving = dismiss(gate);
-      await revealHero();
-      await leaving;
+      await dismiss(gate);
       resolve();
     });
   });

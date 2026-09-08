@@ -198,15 +198,22 @@ if (accordion) {
 
 // RSVP check-in
 initWeddingContent();
-initRsvp();
+initRsvp(lenis);
 
 // Smooth scroll for same-page anchors, including root-relative `/#section` links.
-document.querySelectorAll('a[href^="#"], a[href^="/#"]').forEach((anchor) => {
+document.querySelectorAll('a[href*="#"]').forEach((anchor) => {
   anchor.addEventListener('click', (e) => {
     const href = anchor.getAttribute('href');
-    if (!href || href === '#' || href === '/#') return;
+    if (!href) return;
 
-    const hash = href.startsWith('/#') ? href.slice(1) : href;
+    const hashIndex = href.indexOf('#');
+    const hash = href.slice(hashIndex);
+    if (!hash || hash === '#') return;
+
+    const path = href.slice(0, hashIndex);
+    const samePage = !path || path === '/' || path === '/andrew-kate-wedding' || path === '/andrew-kate-wedding/';
+    if (!samePage) return;
+
     const target = document.querySelector(hash);
     if (!target) return;
 

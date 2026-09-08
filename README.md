@@ -99,7 +99,7 @@ Submissions are stored in Supabase; no email notifications are sent.
 ## Content
 
 `src/wedding-config.js` centralizes the RSVP deadline and registry links. The date
-is **October 30, 2026**, interpreting the supplied October 30 as the date before the
+is **October 31, 2026**, the deadline before the
 May 29, 2027 wedding. The HTML includes the same fallback date for initial rendering.
 The Knot is the only supplied registry; add direct Amazon/Target URLs to the
 registries array when ready. No empty or generic-store links are shown.

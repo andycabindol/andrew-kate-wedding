@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Katie &amp; Andrew</title>
+    <script>
+      (function () {
+        var path = location.pathname.replace(/\/$/, '');
+        var pages = ['/wedding', '/reception', '/rsvp'];
+        var site = '/andrew-kate-wedding';
+        for (var i = 0; i < pages.length; i++) {
+          if (path === site + pages[i]) {
+            location.replace(path + '/' + location.search + location.hash);
+            return;
+          }
+        }
+        location.replace(site + '/' + location.search + location.hash);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

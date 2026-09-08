@@ -172,10 +172,10 @@ export function suggestGuests(query, parties) {
       const key = `${party.id}:${member.id || normalizeName(member.name)}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      suggestions.push({ name, partyId: party.id, label: party.label });
+      suggestions.push({ name, partyId: party.id, label: party.label, replied: Boolean(party.replied) });
     }
   }
-  return suggestions;
+  return suggestions.sort((left, right) => Number(left.replied) - Number(right.replied));
 }
 
 export function matchParties(query, parties) {

@@ -15,40 +15,19 @@
     <script>
       (function () {
         try {
-          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-session');
-          if (!new URLSearchParams(location.search).has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
-            document.documentElement.classList.add('is-unlocked');
-          } else {
-            document.documentElement.classList.add('is-locked');
+          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-intro');
+          if (new URLSearchParams(location.search).has('gate') || sessionStorage.getItem('ka-intro') !== '1') {
+            document.documentElement.classList.add('is-intro');
           }
         } catch (e) {
-          document.documentElement.classList.add('is-locked');
+          document.documentElement.classList.add('is-intro');
         }
       })();
     </script>
   </head>
   <body class="subpage">
-    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
-      <div class="site-gate__enter">
-        <p class="site-gate__kicker">Private invitation</p>
-        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
-        <form class="site-gate__form" autocomplete="off">
-          <label class="site-gate__label" for="siteGatePassword">Password</label>
-          <input
-            class="site-gate__input"
-            id="siteGatePassword"
-            name="password"
-            type="password"
-            inputmode="numeric"
-            autocomplete="current-password"
-            maxlength="12"
-            required
-          />
-          <button class="site-gate__submit" type="submit">Enter</button>
-          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
-        </form>
-      </div>
-      <div class="site-gate__load" hidden>
+    <div class="site-gate site-intro" id="siteIntro">
+      <div class="site-gate__load is-on">
         <div class="site-gate__names">
           <span class="site-gate__name site-gate__name--katie">Katie</span>
           <span class="site-gate__mark">&amp;</span>
@@ -58,19 +37,9 @@
         <div class="site-gate__meter" aria-hidden="true"><span class="site-gate__fill"></span></div>
       </div>
     </div>
-    <template id="siteContent">
-    <div class="viewport-blur" aria-hidden="true">
-      <div class="viewport-blur__layer viewport-blur__layer--1"></div>
-      <div class="viewport-blur__layer viewport-blur__layer--2"></div>
-      <div class="viewport-blur__layer viewport-blur__layer--3"></div>
-      <div class="viewport-blur__layer viewport-blur__layer--4"></div>
-      <div class="viewport-blur__layer viewport-blur__layer--5"></div>
-      <div class="viewport-blur__layer viewport-blur__layer--6"></div>
-    </div>
-
     <header class="nav nav--scrolled" id="nav">
       <div class="nav__inner">
-        <a href="index.html" class="nav__logo">Katie &amp; Andrew</a>
+        <a href="/andrew-kate-wedding/" class="nav__logo">Katie &amp; Andrew</a>
 
         <nav class="nav__links" id="navLinks">
           <div class="nav__menu">
@@ -81,13 +50,13 @@
               </svg>
             </button>
             <div class="nav__dropdown" id="venueMenu">
-              <a href="wedding.html" aria-current="page">Wedding</a>
-              <a href="reception.html">Reception</a>
+              <a href="/andrew-kate-wedding/wedding" aria-current="page">Wedding</a>
+              <a href="/andrew-kate-wedding/reception">Reception</a>
             </div>
           </div>
-          <a href="index.html#schedule">Schedule</a>
-          <a href="index.html#contact">Contact</a>
-          <a href="index.html#rsvp" class="nav__rsvp-btn">RSVP</a>
+          <a href="/andrew-kate-wedding/#schedule">Schedule</a>
+          <a href="/andrew-kate-wedding/#contact">Contact</a>
+          <a href="/andrew-kate-wedding/rsvp" class="nav__rsvp-btn">RSVP</a>
         </nav>
 
         <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
@@ -105,13 +74,13 @@
             </svg>
           </button>
           <div class="nav__dropdown" id="venueMenuMobile">
-            <a href="wedding.html" aria-current="page">Wedding</a>
-            <a href="reception.html">Reception</a>
+            <a href="/andrew-kate-wedding/wedding" aria-current="page">Wedding</a>
+            <a href="/andrew-kate-wedding/reception">Reception</a>
           </div>
         </div>
-        <a href="index.html#schedule">Schedule</a>
-        <a href="index.html#contact">Contact</a>
-        <a href="index.html#rsvp">RSVP</a>
+        <a href="/andrew-kate-wedding/#schedule">Schedule</a>
+        <a href="/andrew-kate-wedding/#contact">Contact</a>
+        <a href="/andrew-kate-wedding/rsvp">RSVP</a>
       </div>
     </header>
 
@@ -167,7 +136,7 @@
           </div>
 
           <p class="venue-page__next">
-            <a href="reception.html">The reception at Raspberry Hill</a>
+            <a href="/andrew-kate-wedding/reception">The reception at Raspberry Hill</a>
           </p>
         </div>
       </section>
@@ -175,17 +144,15 @@
 
     <footer class="footer">
       <div class="container footer__inner">
-        <a href="index.html" class="footer__logo">Katie &amp; Andrew</a>
+        <a href="/andrew-kate-wedding/" class="footer__logo">Katie &amp; Andrew</a>
         <nav class="footer__links">
-          <a href="index.html">Home</a>
-          <a href="reception.html">Reception</a>
-          <a href="index.html#schedule">Schedule</a>
-          <a href="index.html#rsvp">RSVP</a>
+          <a href="/andrew-kate-wedding/">Home</a>
+          <a href="/andrew-kate-wedding/reception">Reception</a>
+          <a href="/andrew-kate-wedding/#schedule">Schedule</a>
+          <a href="/andrew-kate-wedding/rsvp">RSVP</a>
         </nav>
       </div>
     </footer>
-    </template>
-
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

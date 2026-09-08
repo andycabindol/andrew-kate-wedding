@@ -1,7 +1,7 @@
 import { weddingConfig } from './wedding-config.js';
 import { highlightUnmatched, matchParties, parseCsv, partiesFromRows, suggestGuests } from '../supabase/functions/wedding-rsvp/matching.js';
 
-export function initRsvp() {
+export function initRsvp(lenis) {
   if (!document.getElementById('rsvp')) return;
   const byId = (id) => document.getElementById(id);
   const searchForm = byId('rsvpLookupForm');
@@ -17,24 +17,102 @@ export function initRsvp() {
   let guestList = [];
   let activeSuggestion = -1;
   let busy = false;
+  const pageQuery = new URLSearchParams(location.search);
+  const inviteMode = Boolean(invitePartyId());
+
+  function slugId(value) {
+    return String(value || '').normalize('NFKD').replace(/\p{M}/gu, '')
+      .toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+  }
+
+  function invitePartyId() {
+    return (pageQuery.get('party') || pageQuery.get('invite') || '').trim();
+  }
+
+  function inviteUrl(id) {
+    const url = new URL(location.href);
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('party', id);
+    return url.toString();
+  }
 
   function showStep(step) {
     const screen = step === 'confirm' || step === 'already' ? 'search' : step;
-    ['Loading', 'Pending', 'Search', 'Success', 'Unavailable'].forEach((name) => {
-      byId(`rsvp${name}Step`).hidden = name.toLowerCase() !== screen;
+    ['Loading', 'Pending', 'Search', 'Success', 'Unavailable', 'Missing', 'Links'].forEach((name) => {
+      const el = byId(`rsvp${name}Step`);
+      if (el) el.hidden = name.toLowerCase() !== screen;
     });
+    const story = byId('rsvpStory');
+    if (story) story.hidden = screen !== 'search';
+    const back = byId('rsvpBack');
+    if (back && screen !== 'search') back.hidden = true;
     status.textContent = '';
   }
 
   function setStepOpen(block, open) {
     block.classList.toggle('is-open', open);
-    block.querySelectorAll(':scope > .rsvp-step-block__body').forEach((body) => { body.hidden = !open; });
+  }
+
+  let slideIndex = 0;
+
+  function slideTo(index, { animate = true } = {}) {
+    const viewport = byId('rsvpSlide');
+    const track = byId('rsvpSlideTrack');
+    if (!viewport || !track) return;
+    const panes = [...track.querySelectorAll('.rsvp-card__pane')];
+    const pane = panes[index];
+    if (!pane) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const shouldAnimate = animate && !reduced && index !== slideIndex;
+    const width = viewport.clientWidth;
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      panes.forEach((item, paneIndex) => {
+        const active = paneIndex === index;
+        item.classList.toggle('is-active', active);
+        item.toggleAttribute('inert', !active);
+      });
+      viewport.style.overflow = index === 0 ? 'visible' : 'hidden';
+      viewport.style.transition = 'none';
+    };
+    panes.forEach((item) => { item.style.flexBasis = `${width}px`; });
+    panes.forEach((item, paneIndex) => {
+      const showing = paneIndex === index || (shouldAnimate && paneIndex === slideIndex);
+      item.classList.toggle('is-active', showing);
+      if (paneIndex === index) item.removeAttribute('inert');
+    });
+    viewport.style.overflow = 'hidden';
+    if (!shouldAnimate) {
+      track.style.transition = 'none';
+      viewport.style.transition = 'none';
+    } else {
+      track.style.transition = 'transform 0.55s cubic-bezier(0.77, 0, 0.18, 1)';
+      viewport.style.transition = 'height 0.55s cubic-bezier(0.77, 0, 0.18, 1)';
+    }
+    track.style.transform = `translate3d(-${index * width}px, 0, 0)`;
+    viewport.style.height = `${pane.offsetHeight}px`;
+    slideIndex = index;
+    if (!shouldAnimate) {
+      viewport.offsetHeight;
+      track.style.transition = '';
+      viewport.style.transition = '';
+      finish();
+      return;
+    }
+    track.addEventListener('transitionend', (event) => {
+      if (event.target !== track || event.propertyName !== 'transform') return;
+      finish();
+    }, { once: true });
+    window.setTimeout(finish, 700);
   }
 
   let currentStage = 'find';
   let confirmStage = 'confirm';
 
-  function openReached(stage) {
+  function openReached(stage, { scroll = true, animate = true } = {}) {
     currentStage = stage;
     if (stage === 'confirm' || stage === 'already') confirmStage = stage;
     const confirmBody = byId('rsvpConfirmBody');
@@ -43,28 +121,87 @@ export function initRsvp() {
     setStepOpen(byId('rsvpFindBlock'), stage === 'find');
     setStepOpen(byId('rsvpConfirmBlock'), stage === 'confirm' || stage === 'already');
     setStepOpen(byId('rsvpNoteBlock'), stage === 'note');
-    confirmBody.hidden = stage !== 'confirm';
-    alreadyBody.hidden = stage !== 'already';
-    noteBody.hidden = stage !== 'note';
+    if (stage === 'confirm' || stage === 'already') {
+      confirmBody.hidden = stage !== 'confirm';
+      alreadyBody.hidden = stage !== 'already';
+    }
+    if (stage === 'note') noteBody.hidden = false;
     const order = { find: 0, confirm: 1, already: 1, note: 2 };
     const here = order[stage];
-    [
-      [byId('rsvpFindBlock'), byId('rsvpFindHeading'), here > 0, 'find'],
-      [byId('rsvpConfirmBlock'), byId('rsvpConfirmHeading'), here > 1 && selectedParty, confirmStage],
-    ].forEach(([block, heading, canGoBack, next]) => {
-      block.classList.toggle('is-back', canGoBack);
-      heading.classList.toggle('is-back', canGoBack);
-      block.onclick = canGoBack ? (event) => {
-        if (event.target.closest('.rsvp-step-block__body, .guest-results')) return;
-        openReached(next);
-      } : null;
-      heading.onclick = null;
+    const storySteps = [
+      [byId('rsvpFindHeading'), 0, 'find'],
+      [byId('rsvpConfirmHeading'), 1, confirmStage],
+      [byId('rsvpWishesHeading'), 2, 'note'],
+    ];
+    storySteps.forEach(([heading, index, next]) => {
+      if (!heading) return;
+      const canGoBack = index < here && (index === 0 || selectedParty);
+      heading.classList.toggle('is-current', index === here);
+      heading.classList.toggle('is-done', canGoBack);
+      heading.classList.toggle('is-ahead', index > here);
+      heading.setAttribute('aria-current', index === here ? 'step' : 'false');
+      heading.onclick = canGoBack ? () => openReached(next) : null;
     });
-    byId('rsvpNoteBlock').classList.remove('is-back');
-    byId('rsvpWishesHeading').classList.remove('is-back');
-    byId('rsvpWishesHeading').onclick = null;
+    const back = byId('rsvpBack');
+    if (back) {
+      const previous = here > 1 && selectedParty ? confirmStage : here > 0 ? 'find' : null;
+      back.hidden = !previous;
+      back.onclick = previous ? () => openReached(previous) : null;
+    }
+    byId('rsvpCard')?.classList.toggle('is-stepped', here > 0);
+    if (here !== 0) hideSuggestions();
+    slideTo(here, { animate });
+    if (!scroll) return;
+    const targets = {
+      find: byId('rsvpFindBlock'),
+      confirm: byId('rsvpConfirmBlock'),
+      already: byId('rsvpAlreadyBody'),
+      note: byId('rsvpNoteBlock'),
+    };
+    scrollToStep(targets[stage]);
   }
   const focus = (el) => el.focus({ preventScroll: true });
+
+  function scrollToStep(el, onDone) {
+    if (!el) {
+      onDone?.();
+      return;
+    }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const navHeight = document.getElementById('nav')?.offsetHeight || 0;
+    const box = el.getBoundingClientRect();
+    if (box.top >= navHeight + 12 && box.bottom <= window.innerHeight - 16) {
+      onDone?.();
+      return;
+    }
+    const run = () => {
+      const nav = document.getElementById('nav');
+      const offset = -((nav?.offsetHeight || 0) + 20);
+      let finished = false;
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        onDone?.();
+      };
+      if (lenis?.scrollTo) {
+        lenis.resize?.();
+        lenis.scrollTo(el, {
+          offset,
+          duration: reduced ? 0 : 0.75,
+          immediate: reduced,
+          force: true,
+          lock: true,
+          onComplete: done,
+        });
+        if (onDone) window.setTimeout(done, reduced ? 0 : 900);
+        return;
+      }
+      const top = window.scrollY + el.getBoundingClientRect().top + offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : 'smooth' });
+      if (onDone) window.setTimeout(done, reduced ? 0 : 750);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }
 
   async function loadGuestList() {
     if (!weddingConfig.guestSheetCsvUrl) throw new Error('Guest list is not configured');
@@ -140,6 +277,7 @@ export function initRsvp() {
       if (attending) row.className = 'is-attending';
       if (unable) row.className = 'is-unable';
       const name = document.createElement('span');
+      name.className = 'rsvp-summary__name';
       name.textContent = response.name || party.members[index]?.name || 'Guest';
       const answer = document.createElement('span');
       const mark = document.createElement('span');
@@ -160,13 +298,13 @@ export function initRsvp() {
     byId('rsvpAlreadyCount').textContent = attendanceLine(party.members);
     byId('rsvpAlreadySummary').replaceChildren(...summaryItems(party));
     showStep('already');
-    openReached('already');
+    openReached('already', { animate: false });
     focus(byId('rsvpAlreadyHeading'));
   }
 
-  function openInvitation(party) {
+  function openInvitation(party, { animate = true } = {}) {
     if (party.replied) showAlready(party);
-    else selectParty(party);
+    else selectParty(party, { animate });
   }
 
   function withSheetToken(party) {
@@ -189,7 +327,59 @@ export function initRsvp() {
   const errorMessage = (error) => error.status ? error.message
     : 'We couldn’t connect. Please check your connection and try again.';
 
-  function selectParty(party) {
+  let invitedParty = null;
+
+  function applyInviteChrome(party) {
+    document.getElementById('rsvp')?.classList.add('rsvp--invite');
+    invitedParty = party;
+    const title = byId('rsvpTitle');
+    if (title) title.textContent = `Hi ${party.label}`;
+    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
+    if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
+    byId('rsvpWelcome').hidden = false;
+    byId('rsvpHelp').hidden = true;
+    searchForm.hidden = true;
+    openReached('find', { scroll: false, animate: false });
+  }
+
+  function renderInviteLinks(parties) {
+    const list = byId('rsvpInviteLinks');
+    document.getElementById('rsvp')?.classList.add('rsvp--links');
+    const help = document.querySelector('.rsvp-help');
+    if (help) help.hidden = true;
+    const title = byId('rsvpTitle');
+    if (title) title.textContent = 'Invite links';
+    list.replaceChildren(...parties.map((party) => {
+      const item = document.createElement('li');
+      const copy = document.createElement('div');
+      copy.className = 'rsvp-links__copy';
+      const name = document.createElement('p');
+      name.className = 'rsvp-links__name';
+      name.textContent = party.label;
+      const id = document.createElement('p');
+      id.className = 'rsvp-links__id';
+      id.textContent = party.id;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn--dark';
+      button.textContent = 'Copy link';
+      button.addEventListener('click', async () => {
+        const url = inviteUrl(party.id);
+        try {
+          await navigator.clipboard.writeText(url);
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Copy failed';
+        }
+        window.setTimeout(() => { button.textContent = 'Copy link'; }, 1600);
+      });
+      copy.append(name, id);
+      item.append(copy, button);
+      return item;
+    }));
+  }
+
+  function selectParty(party, { animate = true } = {}) {
     selectedParty = party;
     form.reset();
     members.replaceChildren();
@@ -198,9 +388,9 @@ export function initRsvp() {
     const namedGuests = party.members.filter((member) => !member.plusOne);
     const several = namedGuests.length > 1;
     const first = (namedGuests[0] || party.members[0]).name.trim().split(/\s+/)[0];
-    heading.textContent = `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
-    heading.hidden = !several;
-    intro.hidden = !several && !party.members.some((member) => member.plusOne);
+    heading.textContent = inviteMode ? party.label : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
+    heading.hidden = inviteMode || !several;
+    intro.hidden = inviteMode ? false : !several && !party.members.some((member) => member.plusOne);
     party.members.forEach((member, index) => {
       const fieldset = document.createElement('fieldset');
       fieldset.className = 'party-member';
@@ -209,12 +399,11 @@ export function initRsvp() {
       const name = document.createElement('span');
       name.id = `party-member-name-${index}`;
       name.className = 'party-member__name';
-      name.tabIndex = -1;
       name.textContent = member.name;
       fieldset.setAttribute('aria-labelledby', name.id);
       const choices = document.createElement('div');
       choices.className = 'party-member__choices';
-      [['no', 'Unable to attend'], ['yes', 'Attending']].forEach(([value, text]) => {
+      [['yes', 'Attending'], ['no', 'Unable to attend']].forEach(([value, text]) => {
         const label = document.createElement('label');
         label.className = 'party-member__choice';
         const radio = document.createElement('input');
@@ -259,8 +448,8 @@ export function initRsvp() {
     });
     if (party.wishes) byId('wishes').value = party.wishes;
     showStep('confirm');
-    openReached('confirm');
-    focus(several ? heading : members.querySelector('.party-member__name'));
+    openReached('confirm', { animate });
+    if (several) focus(heading);
   }
 
   function confirmationMessage(anyoneAttending) {
@@ -282,31 +471,42 @@ export function initRsvp() {
     const box = mark.getBoundingClientRect();
     const originX = box.left + box.width / 2;
     const originY = box.top + box.height / 2;
-    const pieces = Array.from({ length: 72 }, () => {
+    const total = 160;
+    const spawnFor = 1800;
+    const duration = 5200;
+    const pieces = [];
+    let spawned = 0;
+    const spawnPiece = () => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 3.5 + Math.random() * 8;
+      const speed = 3.2 + Math.random() * 7.5;
       return {
-        x: originX,
-        y: originY,
+        x: originX + (Math.random() - 0.5) * 28,
+        y: originY + (Math.random() - 0.5) * 12,
         w: 5 + Math.random() * 5,
         h: 7 + Math.random() * 7,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
+        vy: Math.sin(angle) * speed - 3.2,
         spin: Math.random() * Math.PI,
-        spinV: -0.25 + Math.random() * 0.5,
+        spinV: -0.22 + Math.random() * 0.44,
         color: colors[Math.floor(Math.random() * colors.length)],
       };
-    });
+    };
     const started = performance.now();
     const draw = (now) => {
+      const elapsed = now - started;
+      const due = Math.min(total, Math.floor((Math.min(elapsed, spawnFor) / spawnFor) * total));
+      while (spawned < due) {
+        pieces.push(spawnPiece());
+        spawned += 1;
+      }
       const width = canvas.width = window.innerWidth;
       const height = canvas.height = window.innerHeight;
       context.clearRect(0, 0, width, height);
       pieces.forEach((piece) => {
-        piece.vy += 0.18;
+        piece.vy += 0.07;
         piece.x += piece.vx;
         piece.y += piece.vy;
-        piece.vx *= 0.985;
+        piece.vx *= 0.992;
         piece.spin += piece.spinV;
         context.save();
         context.translate(piece.x, piece.y);
@@ -315,7 +515,7 @@ export function initRsvp() {
         context.fillRect(-piece.w / 2, -piece.h / 2, piece.w, piece.h);
         context.restore();
       });
-      if (now - started < 2400) requestAnimationFrame(draw);
+      if (elapsed < duration) requestAnimationFrame(draw);
       else canvas.remove();
     };
     requestAnimationFrame(draw);
@@ -423,15 +623,53 @@ export function initRsvp() {
     focus(input);
   }
 
+  function setLookupReady(ready) {
+    input.readOnly = !ready;
+    input.setAttribute('aria-disabled', ready ? 'false' : 'true');
+    input.setAttribute('aria-busy', ready ? 'false' : 'true');
+  }
+
+  function beginInviteWelcome() {
+    document.getElementById('rsvp')?.classList.add('rsvp--invite');
+    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
+    if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
+    const title = byId('rsvpTitle');
+    if (title && title.textContent === 'RSVP') title.textContent = 'Welcome';
+    byId('rsvpWelcome').hidden = false;
+    byId('rsvpHelp').hidden = true;
+    searchForm.hidden = true;
+  }
+
   async function loadStatus() {
-    showStep('loading');
+    if (inviteMode) beginInviteWelcome();
+    showStep('search');
+    openReached('find', { scroll: false });
+    setLookupReady(false);
     try {
       const parties = await loadGuestList();
-      showStep(parties.length ? 'search' : 'pending');
-      if (parties.length) {
-        openReached('find');
-        renderSuggestions();
+      if (!parties.length) {
+        showStep('pending');
+        return;
       }
+      if (pageQuery.has('links')) {
+        renderInviteLinks(parties);
+        showStep('links');
+        return;
+      }
+      const invitedId = slugId(invitePartyId());
+      if (invitedId) {
+        const party = parties.find((item) => item.id === invitedId);
+        if (!party) {
+          showStep('missing');
+          return;
+        }
+        applyInviteChrome(withSheetToken(party));
+        return;
+      }
+      showStep('search');
+      openReached('find', { scroll: false });
+      setLookupReady(true);
+      renderSuggestions();
     } catch {
       showStep('unavailable');
     }
@@ -461,6 +699,10 @@ export function initRsvp() {
       event.preventDefault();
       results.querySelectorAll('button')[activeSuggestion]?.click();
     }
+  });
+  byId('rsvpWelcomeStart').addEventListener('click', () => {
+    if (!invitedParty) return;
+    openInvitation(invitedParty);
   });
   byId('changePartyBtn').addEventListener('click', backToSearch);
   byId('rsvpAlreadyBack').addEventListener('click', backToSearch);
@@ -493,7 +735,9 @@ export function initRsvp() {
     if (!selectedParty) return;
     const missing = selectedParty.members.findIndex((_, index) => !form.querySelector(`[name="attending-${index}"]:checked`));
     if (missing >= 0) {
-      form.querySelector(`[name="attending-${missing}"]`)?.reportValidity();
+      const field = form.querySelector(`[name="attending-${missing}"]`);
+      field?.reportValidity();
+      scrollToStep(field?.closest('.party-member') || field);
       return;
     }
     const responses = repliesFromForm();
@@ -502,6 +746,7 @@ export function initRsvp() {
       const field = form.querySelector(`[name="guest-name-${responses.indexOf(unnamedGuest)}"]`);
       field?.setCustomValidity('Add your guest’s name, or mark this plus one as unable to attend.');
       field?.reportValidity();
+      scrollToStep(field);
       return;
     }
     byId('rsvpWishesSummary').replaceChildren(...summaryItems(selectedParty, responses));
@@ -518,6 +763,7 @@ export function initRsvp() {
       const field = form.querySelector(`[name="guest-name-${responses.indexOf(unnamedGuest)}"]`);
       field?.setCustomValidity('Add your guest’s name, or mark this plus one as unable to attend.');
       field?.reportValidity();
+      scrollToStep(field);
       return;
     }
     const body = {
@@ -544,8 +790,10 @@ export function initRsvp() {
       byId('rsvpSuccessDetail').textContent = confirmation.detail;
       byId('rsvpSummary').replaceChildren(...summaryItems(selectedParty, responses));
       showStep('success');
-      focus(byId('rsvpSuccessHeading'));
-      if (anyoneAttending) celebrate();
+      scrollToStep(byId('rsvpSuccessStep'), () => {
+        focus(byId('rsvpSuccessHeading'));
+        if (anyoneAttending) celebrate();
+      });
     } catch (error) {
       status.textContent = errorMessage(error);
       // Preserve all answers and wishes on a failed save.
@@ -559,5 +807,19 @@ export function initRsvp() {
       submit.textContent = 'Confirm RSVP';
     }
   });
+  window.addEventListener('resize', () => {
+    if (byId('rsvpSearchStep')?.hidden) return;
+    slideTo(slideIndex, { animate: false });
+  });
+  const notePane = byId('wishes')?.closest('.rsvp-card__pane');
+  if (notePane && 'ResizeObserver' in window) {
+    new ResizeObserver(() => {
+      if (slideIndex !== 2) return;
+      const viewport = byId('rsvpSlide');
+      if (!viewport) return;
+      viewport.style.transition = 'none';
+      viewport.style.height = `${notePane.offsetHeight}px`;
+    }).observe(notePane);
+  }
   loadStatus();
 }

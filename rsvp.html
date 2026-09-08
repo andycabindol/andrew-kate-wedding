@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSVP — Katie &amp; Andrew</title>
+    <meta name="description" content="RSVP for Katie and Andrew's wedding." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-session');
+          if (!new URLSearchParams(location.search).has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
+            document.documentElement.classList.add('is-unlocked');
+          } else {
+            document.documentElement.classList.add('is-locked');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('is-locked');
+        }
+      })();
+    </script>
+  </head>
+  <body class="subpage rsvp-page">
+    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
+      <div class="site-gate__enter">
+        <p class="site-gate__kicker">Private invitation</p>
+        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
+        <form class="site-gate__form" autocomplete="off">
+          <label class="site-gate__label" for="siteGatePassword">Password</label>
+          <input
+            class="site-gate__input"
+            id="siteGatePassword"
+            name="password"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            maxlength="12"
+            required
+          />
+          <button class="site-gate__submit" type="submit">Enter</button>
+          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
+        </form>
+      </div>
+    </div>
+    <template id="siteContent">
+    <header class="nav nav--scrolled" id="nav">
+      <div class="nav__inner">
+        <a href="/andrew-kate-wedding/" class="nav__logo">Katie &amp; Andrew</a>
+
+        <nav class="nav__links" id="navLinks">
+          <div class="nav__menu">
+            <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="venueMenu">
+              Venue
+              <svg class="nav__chevron" viewBox="0 0 256 256" aria-hidden="true">
+                <path fill="currentColor" d="M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z" />
+              </svg>
+            </button>
+            <div class="nav__dropdown" id="venueMenu">
+              <a href="/andrew-kate-wedding/wedding">Wedding</a>
+              <a href="/andrew-kate-wedding/reception">Reception</a>
+            </div>
+          </div>
+          <a href="/andrew-kate-wedding/#schedule">Schedule</a>
+          <a href="/andrew-kate-wedding/#contact">Contact</a>
+          <a href="/andrew-kate-wedding/rsvp" class="nav__rsvp-btn" aria-current="page">RSVP</a>
+        </nav>
+
+        <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div class="nav__mobile" id="navMobile" aria-hidden="true">
+        <div class="nav__menu">
+          <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="venueMenuMobile">
+            Venue
+            <svg class="nav__chevron" viewBox="0 0 256 256" aria-hidden="true">
+              <path fill="currentColor" d="M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z" />
+            </svg>
+          </button>
+          <div class="nav__dropdown" id="venueMenuMobile">
+            <a href="/andrew-kate-wedding/wedding">Wedding</a>
+            <a href="/andrew-kate-wedding/reception">Reception</a>
+          </div>
+        </div>
+        <a href="/andrew-kate-wedding/#schedule">Schedule</a>
+        <a href="/andrew-kate-wedding/#contact">Contact</a>
+        <a href="/andrew-kate-wedding/rsvp" aria-current="page">RSVP</a>
+      </div>
+    </header>
+
+    <main class="rsvp-page__main">
+      <section class="rsvp rsvp-stage" id="rsvp">
+        <nav class="rsvp-story" id="rsvpStory" aria-label="RSVP steps">
+          <button type="button" class="rsvp-story__step is-current" id="rsvpFindHeading" aria-current="step"><span class="rsvp-story__num">1.</span> <span class="rsvp-story__label">Find your invitation</span></button>
+          <button type="button" class="rsvp-story__step is-ahead" id="rsvpConfirmHeading"><span class="rsvp-story__num">2.</span> <span class="rsvp-story__label">Who’s coming</span></button>
+          <button type="button" class="rsvp-story__step is-ahead" id="rsvpWishesHeading"><span class="rsvp-story__num">3.</span> <span class="rsvp-story__label">Add a note</span></button>
+        </nav>
+
+        <div class="rsvp-card" id="rsvpCard">
+        <div class="rsvp-card__top">
+          <button type="button" class="rsvp-back" id="rsvpBack" hidden>
+          <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,128a6,6,0,0,1-6,6H54.49l61.75,61.76a6,6,0,0,1-8.48,8.48l-72-72a6,6,0,0,1,0-8.48l72-72a6,6,0,0,1,8.48,8.48L54.49,122H216A6,6,0,0,1,222,128Z"/></svg>
+          Back
+          </button>
+          <p class="rsvp-card__brand"><span>RSVP</span> <span>Katie &amp; Andrew</span></p>
+        </div>
+
+        <div id="rsvpLoadingStep" class="rsvp-state" hidden></div>
+        <div id="rsvpPendingStep" class="rsvp-state" hidden>
+          <p class="rsvp-state__eyebrow">A little closer to the day</p>
+          <h2 class="rsvp-state__title">RSVPs opening soon</h2>
+          <p class="body-text">We’re putting the finishing touches on our guest list. Please check back once you’ve received your invitation.</p>
+        </div>
+        <div id="rsvpUnavailableStep" class="rsvp-state" hidden>
+          <h2 class="rsvp-state__title">Let’s try that again</h2>
+          <p class="body-text">We couldn’t load invitations right now. Please try again in a moment.</p>
+          <button type="button" id="rsvpRetry" class="btn btn--dark">Try again</button>
+        </div>
+        <div id="rsvpMissingStep" class="rsvp-state" hidden>
+          <h2 class="rsvp-state__title">We couldn’t find that invitation</h2>
+          <p class="body-text">This link doesn’t match an invitation. You can still look up your name.</p>
+          <a href="/andrew-kate-wedding/rsvp" class="btn btn--dark">Find your invitation</a>
+        </div>
+        <div id="rsvpLinksStep" class="rsvp-state" hidden>
+          <p class="rsvp-state__eyebrow">Invite links</p>
+          <h2 class="rsvp-state__title">Personal RSVP links</h2>
+          <p class="body-text">Each link opens a welcome for that invitation. Guests start their RSVP from there.</p>
+          <ul id="rsvpInviteLinks" class="rsvp-links"></ul>
+        </div>
+        <div id="rsvpSearchStep">
+          <div class="rsvp-card__viewport" id="rsvpSlide">
+          <div class="rsvp-card__track" id="rsvpSlideTrack">
+          <div class="rsvp-card__pane is-active">
+          <div class="rsvp-step-block is-open" id="rsvpFindBlock">
+            <div class="rsvp-step-block__body">
+              <div class="rsvp-card__intro">
+                <h1 class="section-heading" id="rsvpTitle">RSVP</h1>
+                <p class="rsvp-help" id="rsvpHelp">Please RSVP by <span data-rsvp-deadline>October 31, 2026</span>. <span class="rsvp-help__aside">Need help? <a href="mailto:katieferg93@gmail.com">Email Katie</a></span></p>
+              </div>
+              <div class="rsvp-welcome" id="rsvpWelcome" hidden>
+                <p class="body-text" id="rsvpWelcomeText">We’re so glad you can celebrate with us. Please reply by <span data-rsvp-deadline>October 31, 2026</span>. <span class="rsvp-help__aside">Need help? <a href="mailto:katieferg93@gmail.com">Email Katie</a></span></p>
+                <button type="button" class="btn btn--dark" id="rsvpWelcomeStart">RSVP</button>
+              </div>
+              <form id="rsvpLookupForm" class="rsvp-lookup">
+                <div class="form-group guest-lookup">
+                  <span class="guest-lookup__icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                    </svg>
+                  </span>
+                  <input type="search" id="guestSearch" name="guestSearch" placeholder="Search first and last name" aria-label="First and Last name"
+                    autocomplete="off" minlength="3" maxlength="120" required role="combobox"
+                    aria-autocomplete="list" aria-controls="guestResults" aria-expanded="false" aria-busy="true" aria-disabled="true" readonly />
+                  <ul id="guestResults" class="guest-results" role="listbox" aria-label="Matching names" data-lenis-prevent hidden></ul>
+                </div>
+              </form>
+            </div>
+          </div>
+          </div>
+          <form class="rsvp-form rsvp-card__form" id="rsvpForm">
+            <div class="rsvp-card__pane">
+            <div class="rsvp-step-block" id="rsvpConfirmBlock">
+              <div class="rsvp-step-block__body" id="rsvpConfirmBody" hidden>
+                <h2 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h2>
+                <p class="body-text rsvp__confirm-intro">Please reply for everyone on this invitation, including any plus one.</p>
+                <div id="partyMembers"></div>
+                <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
+                <button type="button" class="btn btn--secondary btn--full rsvp-change" id="changePartyBtn">Find a different invitation</button>
+              </div>
+              <div class="rsvp-step-block__body" id="rsvpAlreadyBody" hidden>
+                <p class="rsvp-already-party" id="rsvpAlreadyParty"></p>
+                <h2 class="rsvp-state__title" id="rsvpAlreadyHeading" tabindex="-1">Looks like you’ve already RSVP’d.</h2>
+                <p class="body-text" id="rsvpAlreadyCount"></p>
+                <ul id="rsvpAlreadySummary" class="rsvp-summary" aria-label="Saved RSVP"></ul>
+                <p class="rsvp-note">Need to change this? <a href="mailto:katieferg93@gmail.com">Email Katie</a> and we’ll update your reply.</p>
+                <button type="button" id="rsvpAlreadyBack" class="btn btn--secondary btn--full">Find a different invitation</button>
+              </div>
+            </div>
+            </div>
+            <div class="rsvp-card__pane">
+            <div class="rsvp-step-block" id="rsvpNoteBlock">
+              <div class="rsvp-step-block__body" id="rsvpNoteBody" hidden>
+                <ul id="rsvpWishesSummary" class="rsvp-summary" aria-label="Your RSVP"></ul>
+                <div class="form-group">
+                  <label for="wishes">Add a note</label>
+                  <textarea id="wishes" name="wishes" rows="4" maxlength="2000" placeholder="Congratulations! We are so happy for you both…"></textarea>
+                </div>
+                <button type="submit" id="rsvpSubmit" class="btn btn--dark btn--full">Confirm RSVP</button>
+              </div>
+            </div>
+            </div>
+          </form>
+          </div>
+          </div>
+        </div>
+        <div id="rsvpSuccessStep" class="rsvp-state rsvp-state--success" hidden>
+          <h2 class="rsvp-state__title rsvp-success-message" id="rsvpSuccessHeading" tabindex="-1">
+            <span class="rsvp-success-mark" aria-hidden="true">
+              <svg viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z" /></svg>
+            </span>
+            <span class="rsvp-success-copy">
+              <span id="rsvpSuccessMessage"></span>
+              <span id="rsvpSuccessDetail" class="rsvp-success-detail"></span>
+            </span>
+          </h2>
+          <ul id="rsvpSummary" class="rsvp-summary" aria-label="Your saved RSVP"></ul>
+          <p class="rsvp-note">If plans change, you can <button type="button" id="rsvpEditReply" class="rsvp-inline-link">update your RSVP here</button> or <a href="mailto:katieferg93@gmail.com">email Katie</a>.</p>
+        </div>
+        <p id="rsvpStatus" class="rsvp-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <noscript><p class="body-text">Please enable JavaScript to RSVP, or email Katie for help.</p></noscript>
+        </div>
+      </section>
+    </main>
+    </template>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

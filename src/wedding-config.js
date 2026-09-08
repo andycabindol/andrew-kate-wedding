@@ -1,5 +1,5 @@
 export const weddingConfig = {
-  rsvpDeadline: 'October 30, 2026',
+  rsvpDeadline: 'October 31, 2026',
   contactEmail: 'katieferg93@gmail.com',
   rsvpEndpoint: 'https://uyhzqldiukfmugasiapi.supabase.co/functions/v1/wedding-rsvp',
   guestSheetCsvUrl: 'https://docs.google.com/spreadsheets/d/1sV27HMCN8Ed9fL3sgCSeqNR4RhjGQ3alWkBz6gbONhY/export?format=csv&gid=2002847235',
@@ -101,12 +101,12 @@ export function initWeddingContent() {
   });
   const links = document.querySelector('.gifts__links');
   if (links) {
-    links.replaceChildren(...weddingConfig.registries.map((registry, index) => {
+    links.replaceChildren(...weddingConfig.registries.map((registry) => {
       const link = document.createElement('a');
       link.href = registry.url;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      link.className = `gifts__link${index ? ' gifts__link--secondary' : ''}`;
+      link.className = 'btn btn--secondary';
       link.textContent = registry.name;
       return link;
     }));

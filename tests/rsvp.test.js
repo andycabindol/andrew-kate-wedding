@@ -112,6 +112,11 @@ test('name suggestions highlight only the letters that do not match', () => {
     'Andrew Cabindol', 'Jose Cabindol', 'Maria Cabindol',
   ]);
   assert.deepEqual(suggestGuests('Andy', parties).map((item) => item.name), ['Andy Cabindol']);
+  const mixed = partiesFromRows([
+    { party_id: 'replied', party_name: 'Alex Replied', guest_name: 'Alex Replied', rsvp_received: 'TRUE', attending: 'Yes' },
+    { party_id: 'open', party_name: 'Alex Open', guest_name: 'Alex Open' },
+  ]);
+  assert.deepEqual(suggestGuests('Alex', mixed).map((item) => item.name), ['Alex Open', 'Alex Replied']);
   assert.equal(suggestGuests('P', parties).some((item) => /plus one/i.test(item.name)), false);
   const twoPlusOnes = partiesFromRows([
     { party_id: 'bennett-ava', party_name: 'Ava Bennett', guest_name: 'Ava Bennett', extra_guests: '2' },
