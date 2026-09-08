@@ -275,6 +275,24 @@ export function initRsvp(lenis) {
     else selectParty(party, { animate });
   }
 
+  function chooseParty(party, mode) {
+    if (mode === 'edit') selectParty(party);
+    else openInvitation(party);
+    const opening = openParty(party).then((opened) => {
+      if (selectedParty?.id !== party.id) return opened;
+      selectedParty.token = opened.token;
+      selectedParty.opening = opening;
+      if (mode === 'edit' && opened.replied && form.dataset.dirty !== '1') {
+        selectParty({ ...opened, token: opened.token, opening }, { animate: false });
+      }
+      return opened;
+    }).catch((error) => {
+      if (selectedParty?.id === party.id) status.textContent = errorMessage(error);
+      throw error;
+    });
+    if (selectedParty?.id === party.id) selectedParty.opening = opening;
+  }
+
   async function openParty(party) {
     const data = await request({ action: 'open', id: party.id });
     return { ...data.party, token: data.token };
@@ -312,7 +330,9 @@ export function initRsvp(lenis) {
   }
 
   function selectParty(party, { animate = true } = {}) {
-    selectedParty = party;
+    const opening = party.opening || (selectedParty?.id === party.id ? selectedParty.opening : null);
+    selectedParty = opening ? { ...party, opening } : party;
+    form.dataset.dirty = '';
     form.reset();
     members.replaceChildren();
     const heading = byId('partyHeading');
@@ -513,17 +533,12 @@ export function initRsvp(lenis) {
       }
       option.append(name, status);
       option.addEventListener('mousedown', (event) => { event.preventDefault(); });
-      option.addEventListener('click', async (event) => {
+      option.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         if (!party || busy) return;
-        try {
-          const invitation = await openParty(party);
-          if (invitation.replied) selectParty(invitation);
-          else openInvitation(invitation);
-        } catch (error) {
-          status.textContent = errorMessage(error);
-        }
+        hideSuggestions();
+        chooseParty(party, party.replied ? 'edit' : 'open');
       });
       li.append(option);
       results.append(li);
@@ -635,15 +650,9 @@ export function initRsvp(lenis) {
       results.querySelectorAll('button')[activeSuggestion]?.click();
     }
   });
-  byId('rsvpWelcomeStart').addEventListener('click', async () => {
+  byId('rsvpWelcomeStart').addEventListener('click', () => {
     if (!invitedParty || busy) return;
-    try {
-      const invitation = await openParty(invitedParty);
-      invitedParty = invitation;
-      openInvitation(invitation);
-    } catch (error) {
-      status.textContent = errorMessage(error);
-    }
+    chooseParty(invitedParty, 'open');
   });
   byId('changePartyBtn').addEventListener('click', backToSearch);
   byId('rsvpAlreadyBack').addEventListener('click', backToSearch);
@@ -695,6 +704,7 @@ export function initRsvp(lenis) {
     focus(byId('rsvpWishesHeading'));
   });
 
+  form.addEventListener('input', () => { form.dataset.dirty = '1'; });
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (busy || !selectedParty || !form.reportValidity()) return;
@@ -706,6 +716,10 @@ export function initRsvp(lenis) {
       field?.reportValidity();
       scrollToStep(field);
       return;
+    }
+    if (!selectedParty.token && selectedParty.opening) {
+      try { await selectedParty.opening; }
+      catch { return; }
     }
     const body = {
       action: 'submit', token: selectedParty.token, responses,
