@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
 export default defineConfig({
+  // Project site: https://andycabindol.github.io/andrew-kate-wedding/
+  base: '/andrew-kate-wedding/',
   root: '.',
   publicDir: 'public',
   build: {
