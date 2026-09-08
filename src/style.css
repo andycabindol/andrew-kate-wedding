@@ -3200,15 +3200,72 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   margin-top: 12px;
 }
 
+.admin__badge {
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.admin__badge.is-yes {
+  color: #2f7d4a;
+}
+
+.admin__badge.is-no {
+  color: #a85a5a;
+}
+
 .admin__person {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
 }
 
 .admin__person p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
+}
+
+.admin__person p::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(44, 44, 44, 0.18);
+  flex: 0 0 auto;
+}
+
+.admin__person.is-yes {
+  background: rgba(47, 125, 74, 0.1);
+}
+
+.admin__person.is-yes p::before {
+  background: #2f7d4a;
+}
+
+.admin__person.is-no {
+  background: rgba(196, 122, 122, 0.14);
+}
+
+.admin__person.is-no p {
+  color: var(--color-text-secondary);
+}
+
+.admin__person.is-no p::before {
+  background: #c47a7a;
+}
+
+.admin__person.is-waiting {
+  background: rgba(44, 44, 44, 0.03);
 }
 
 .admin__attendance {
@@ -3218,6 +3275,21 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   color: var(--color-text);
   border-radius: var(--radius);
   padding: 8px 10px;
+}
+
+.admin__person.is-yes .admin__attendance {
+  color: #2f7d4a;
+  border-color: rgba(47, 125, 74, 0.35);
+  font-weight: 600;
+}
+
+.admin__person.is-no .admin__attendance {
+  color: #a85a5a;
+  border-color: rgba(168, 90, 90, 0.28);
+}
+
+.admin__person.is-waiting .admin__attendance {
+  color: var(--color-text-muted);
 }
 
 .admin__wishes {

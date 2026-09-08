@@ -95,14 +95,17 @@ function render() {
     head.className = 'admin__card-head';
     const title = document.createElement('h2');
     title.textContent = party.label;
+    const yes = party.members.filter((member) => member.attending === true).length;
+    const no = party.members.filter((member) => member.attending === false).length;
     const badge = document.createElement('span');
-    badge.textContent = party.replied ? `${guestCount(party)} of ${party.members.length} attending` : 'Waiting';
+    badge.className = `admin__badge${party.replied ? (yes ? ' is-yes' : ' is-no') : ''}`;
+    badge.textContent = party.replied ? `${yes} yes${no ? ` · ${no} no` : ''}` : 'Waiting';
     head.append(title, badge);
     const people = document.createElement('div');
     people.className = 'admin__people';
     for (const member of party.members) {
       const item = document.createElement('div');
-      item.className = 'admin__person';
+      item.className = `admin__person${member.attending === true ? ' is-yes' : member.attending === false ? ' is-no' : ' is-waiting'}`;
       const name = document.createElement('p');
       const shown = member.plusOne && member.name && !/^plus one/i.test(member.name) ? member.name : member.name;
       name.textContent = `${shown}${member.plusOne ? ' · plus one' : ''}`;
