@@ -58,7 +58,7 @@ function expandFullName(name) {
   return new Set([...firstNameAliases(parts[0])].map((first) => `${first} ${rest}`));
 }
 
-function lookupNames(member) {
+export function lookupNames(member) {
   const names = new Set();
   for (const value of [member.name, ...(member.aliases || [])]) {
     const normalized = normalizeName(value || '');
@@ -228,6 +228,10 @@ function attendingValue(value) {
   if (['yes', 'y', 'attending', 'true', '1'].includes(text)) return true;
   if (['no', 'n', 'unable', 'unable to attend', 'false', '0'].includes(text)) return false;
   return null;
+}
+
+export function searchNamesFor(members) {
+  return [...new Set((members || []).filter((member) => !member.plusOne).flatMap((member) => lookupNames(member)))];
 }
 
 export function partiesFromRows(rows) {

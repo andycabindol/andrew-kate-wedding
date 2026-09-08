@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guest list | Katie &amp; Andrew</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="admin-page">
+    <main class="admin">
+      <header class="admin__head">
+        <p class="admin__kicker">Katie &amp; Andrew</p>
+        <h1>Guest list</h1>
+        <p class="admin__lede" id="adminSummary"></p>
+      </header>
+
+      <form class="admin__login" id="adminLogin" hidden>
+        <label for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" required />
+        <button class="btn btn--dark" type="submit">Open guest list</button>
+        <p class="admin__status" id="adminLoginStatus" role="alert"></p>
+      </form>
+
+      <section class="admin__app" id="adminApp" hidden>
+        <div class="admin__toolbar">
+          <div class="admin__filters" role="tablist">
+            <button type="button" class="is-active" data-filter="all">All</button>
+            <button type="button" data-filter="waiting">Waiting</button>
+            <button type="button" data-filter="replied">Replied</button>
+          </div>
+          <button class="admin__tool" type="button" id="adminDownload">
+            <svg viewBox="0 0 256 256" fill="none" aria-hidden="true"><line x1="128" y1="144" x2="128" y2="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="216 152 216 208 40 208 40 152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="168 104 128 144 88 104" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/></svg>
+            Download table
+          </button>
+          <button class="admin__tool" type="button" id="adminTemplate">
+            <svg viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="40" y="48" width="176" height="160" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><line x1="40" y1="96" x2="216" y2="96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><line x1="40" y1="144" x2="216" y2="144" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><line x1="112" y1="48" x2="112" y2="208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/></svg>
+            Table template
+          </button>
+          <button class="admin__tool" type="button" id="adminUpload">
+            <svg viewBox="0 0 256 256" fill="none" aria-hidden="true"><line x1="128" y1="144" x2="128" y2="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="216 152 216 208 40 208 40 152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="88 72 128 32 168 72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/></svg>
+            Upload table
+          </button>
+          <input id="adminFile" type="file" accept=".csv,text/csv" hidden />
+          <button class="admin__add" type="button" id="adminAdd">+ Add Invitation</button>
+        </div>
+        <p class="admin__status" id="adminStatus" role="status"></p>
+        <div class="admin__list" id="adminList"></div>
+      </section>
+
+      <dialog class="admin__dialog" id="adminEditor">
+        <form id="adminForm" method="dialog">
+          <h2 id="adminEditorTitle">Invitation</h2>
+          <div class="admin__field" id="partyLabelField">
+            <label for="partyLabel">Group name</label>
+            <input id="partyLabel" name="label" maxlength="200" />
+          </div>
+          <div class="admin__members" id="partyMembers"></div>
+          <div class="admin__row-actions">
+            <button class="admin__add" type="button" id="addGuest">Add guest</button>
+            <button class="admin__add admin__add--hug" type="button" id="addPlusOne">Add +1</button>
+          </div>
+          <div class="admin__dialog-actions">
+            <button class="btn btn--dark btn--full" type="submit">Save invitation</button>
+            <button class="admin__cancel" type="button" id="adminCancel">Cancel</button>
+          </div>
+        </form>
+      </dialog>
+    </main>
+    <div class="admin__drop" id="adminDrop" hidden>
+      <div class="admin__drop-card">
+        <svg viewBox="0 0 256 256" fill="none" aria-hidden="true"><line x1="128" y1="144" x2="128" y2="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="216 152 216 208 40 208 40 152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/><polyline points="88 72 128 32 168 72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/></svg>
+        <p>Upload a file</p>
+      </div>
+    </div>
+    <script type="module" src="/src/admin.js"></script>
+  </body>
+</html>

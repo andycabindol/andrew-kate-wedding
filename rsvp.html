@@ -42,30 +42,6 @@
     </script>
   </head>
   <body class="subpage rsvp-page">
-    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
-      <div class="site-gate__enter">
-        <p class="site-gate__kicker">Private invitation</p>
-        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
-        <form class="site-gate__form" autocomplete="off">
-          <label class="site-gate__label" for="siteGatePassword">Password</label>
-          <input
-            class="site-gate__input"
-            id="siteGatePassword"
-            name="password"
-            type="text"
-            inputmode="numeric"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            maxlength="12"
-            required
-          />
-          <button class="site-gate__submit" type="submit">Enter</button>
-          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
-        </form>
-      </div>
-    </div>
-    <template id="siteContent">
     <header class="nav nav--scrolled" id="nav">
       <div class="nav__inner">
         <a href="/" class="nav__logo">Katie &amp; Andrew</a>
@@ -112,12 +88,35 @@
         <a href="/rsvp" aria-current="page">RSVP</a>
       </div>
     </header>
-
+    <div class="site-gate" id="siteGate" role="dialog" aria-modal="true" aria-labelledby="siteGateTitle">
+      <div class="site-gate__enter">
+        <p class="site-gate__kicker">Private invitation</p>
+        <h1 class="site-gate__title" id="siteGateTitle"><span>Katie &amp; Andrew</span></h1>
+        <form class="site-gate__form" autocomplete="off">
+          <label class="site-gate__label" for="siteGatePassword">Password</label>
+          <input
+            class="site-gate__input"
+            id="siteGatePassword"
+            name="password"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            maxlength="12"
+            required
+          />
+          <button class="site-gate__submit" type="submit">Enter</button>
+          <p class="site-gate__error" role="alert" hidden>That password isn’t right.</p>
+        </form>
+      </div>
+    </div>
+    <template id="siteContent">
     <main class="rsvp-page__main">
       <section class="rsvp rsvp-stage" id="rsvp">
         <nav class="rsvp-story" id="rsvpStory" aria-label="RSVP steps">
           <button type="button" class="rsvp-story__step is-current" id="rsvpFindHeading" aria-current="step"><span class="rsvp-story__num">1.</span> <span class="rsvp-story__label">Find your invitation</span></button>
-          <button type="button" class="rsvp-story__step is-ahead" id="rsvpConfirmHeading"><span class="rsvp-story__num">2.</span> <span class="rsvp-story__label">Who’s coming</span></button>
+          <button type="button" class="rsvp-story__step is-ahead" id="rsvpConfirmHeading"><span class="rsvp-story__num">2.</span> <span class="rsvp-story__label">Attendance</span></button>
           <button type="button" class="rsvp-story__step is-ahead" id="rsvpWishesHeading"><span class="rsvp-story__num">3.</span> <span class="rsvp-story__label">Add a note</span></button>
         </nav>
 
@@ -145,12 +144,6 @@
           <h2 class="rsvp-state__title">We couldn’t find that invitation</h2>
           <p class="body-text">This link doesn’t match an invitation. You can still look up your name.</p>
           <a href="/rsvp" class="btn btn--dark">Find your invitation</a>
-        </div>
-        <div id="rsvpLinksStep" class="rsvp-state" hidden>
-          <p class="rsvp-state__eyebrow">Invite links</p>
-          <h2 class="rsvp-state__title">Personal RSVP links</h2>
-          <p class="body-text">Each link opens a welcome for that invitation. Guests start their RSVP from there.</p>
-          <ul id="rsvpInviteLinks" class="rsvp-links"></ul>
         </div>
         <div id="rsvpSearchStep">
           <div class="rsvp-card__viewport" id="rsvpSlide">
@@ -187,7 +180,7 @@
             <div class="rsvp-step-block" id="rsvpConfirmBlock">
               <div class="rsvp-step-block__body" id="rsvpConfirmBody" hidden>
                 <h2 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h2>
-                <p class="body-text rsvp__confirm-intro">Please reply for everyone on this invitation, including any plus one.</p>
+                <p class="body-text rsvp__confirm-intro" id="rsvpConfirmIntro">Please reply for everyone on this invitation.</p>
                 <div id="partyMembers"></div>
                 <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
                 <button type="button" class="btn btn--secondary btn--full rsvp-change" id="changePartyBtn">Find a different invitation</button>

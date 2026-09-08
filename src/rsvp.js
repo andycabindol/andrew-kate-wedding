@@ -1,5 +1,5 @@
 import { weddingConfig } from './wedding-config.js';
-import { highlightUnmatched, matchParties, parseCsv, partiesFromRows, suggestGuests } from '../supabase/functions/wedding-rsvp/matching.js';
+import { highlightUnmatched, suggestGuests } from '../supabase/functions/wedding-rsvp/matching.js';
 
 export function initRsvp(lenis) {
   if (!document.getElementById('rsvp')) return;
@@ -11,7 +11,6 @@ export function initRsvp(lenis) {
   const members = byId('partyMembers');
   const status = byId('rsvpStatus');
   const submit = byId('rsvpSubmit');
-  const savedRepliesKey = 'katie-andrew-rsvp-replies';
   let selectedParty = null;
   let savedReply = null;
   let guestList = [];
@@ -29,17 +28,9 @@ export function initRsvp(lenis) {
     return (pageQuery.get('party') || pageQuery.get('invite') || '').trim();
   }
 
-  function inviteUrl(id) {
-    const url = new URL(location.href);
-    url.search = '';
-    url.hash = '';
-    url.searchParams.set('party', id);
-    return url.toString();
-  }
-
   function showStep(step) {
     const screen = step === 'confirm' || step === 'already' ? 'search' : step;
-    ['Loading', 'Pending', 'Search', 'Success', 'Unavailable', 'Missing', 'Links'].forEach((name) => {
+    ['Loading', 'Pending', 'Search', 'Success', 'Unavailable', 'Missing'].forEach((name) => {
       const el = byId(`rsvp${name}Step`);
       if (el) el.hidden = name.toLowerCase() !== screen;
     });
@@ -204,52 +195,29 @@ export function initRsvp(lenis) {
   }
 
   async function loadGuestList() {
-    if (!weddingConfig.guestSheetCsvUrl) throw new Error('Guest list is not configured');
-    const response = await fetch(`${weddingConfig.guestSheetCsvUrl}&t=${Date.now()}`, {
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!response.ok) throw new Error('Guest list unavailable');
-    guestList = partiesFromRows(parseCsv(await response.text())).map(applyRememberedReply);
+    if (!weddingConfig.rsvpEndpoint) throw new Error('Guest list is not configured');
+    const data = await request({ action: 'list' });
+    guestList = Array.isArray(data.parties) ? data.parties : [];
     return guestList;
   }
 
-  function readReplies() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(savedRepliesKey) || '{}');
-      return saved && typeof saved === 'object' ? saved : {};
-    } catch {
-      return {};
-    }
-  }
-
-  function rememberReply(party, responses, wishes) {
-    const replies = readReplies();
-    replies[party.id] = {
-      wishes,
-      updated_at: new Date().toISOString(),
-      responses: responses.map((response, index) => ({
-        id: response.id,
-        name: response.name || party.members[index].name,
-        attending: response.attending,
-      })),
-    };
-    localStorage.setItem(savedRepliesKey, JSON.stringify(replies));
-  }
-
-  function applyRememberedReply(party) {
-    if (party.replied) return party;
-    const reply = readReplies()[party.id];
-    if (!reply?.responses) return party;
-    return {
+  function rememberSavedParty(party, responses, wishes) {
+    const saved = {
       ...party,
       replied: true,
-      wishes: reply.wishes || '',
-      members: party.members.map((member) => {
-        const answer = reply.responses.find((item) => item.id === member.id);
-        if (!answer) return member;
-        return { ...member, name: answer.name || member.name, attending: answer.attending };
+      wishes,
+      members: party.members.map((member, index) => {
+        const answer = responses[index] || {};
+        const named = typeof answer.name === 'string' ? answer.name.trim() : '';
+        return {
+          ...member,
+          attending: answer.attending,
+          ...(member.plusOne && named ? { name: named } : {}),
+        };
       }),
     };
+    guestList = guestList.map((item) => item.id === party.id ? { ...saved, token: item.token } : item);
+    return saved;
   }
 
   function attendanceLine(members) {
@@ -307,8 +275,9 @@ export function initRsvp(lenis) {
     else selectParty(party, { animate });
   }
 
-  function withSheetToken(party) {
-    return { ...party, token: `sheet:${party.id}` };
+  async function openParty(party) {
+    const data = await request({ action: 'open', id: party.id });
+    return { ...data.party, token: data.token };
   }
 
   async function request(body) {
@@ -342,43 +311,6 @@ export function initRsvp(lenis) {
     openReached('find', { scroll: false, animate: false });
   }
 
-  function renderInviteLinks(parties) {
-    const list = byId('rsvpInviteLinks');
-    document.getElementById('rsvp')?.classList.add('rsvp--links');
-    const help = document.querySelector('.rsvp-help');
-    if (help) help.hidden = true;
-    const title = byId('rsvpTitle');
-    if (title) title.textContent = 'Invite links';
-    list.replaceChildren(...parties.map((party) => {
-      const item = document.createElement('li');
-      const copy = document.createElement('div');
-      copy.className = 'rsvp-links__copy';
-      const name = document.createElement('p');
-      name.className = 'rsvp-links__name';
-      name.textContent = party.label;
-      const id = document.createElement('p');
-      id.className = 'rsvp-links__id';
-      id.textContent = party.id;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'btn btn--dark';
-      button.textContent = 'Copy link';
-      button.addEventListener('click', async () => {
-        const url = inviteUrl(party.id);
-        try {
-          await navigator.clipboard.writeText(url);
-          button.textContent = 'Copied';
-        } catch {
-          button.textContent = 'Copy failed';
-        }
-        window.setTimeout(() => { button.textContent = 'Copy link'; }, 1600);
-      });
-      copy.append(name, id);
-      item.append(copy, button);
-      return item;
-    }));
-  }
-
   function selectParty(party, { animate = true } = {}) {
     selectedParty = party;
     form.reset();
@@ -387,10 +319,14 @@ export function initRsvp(lenis) {
     const intro = heading.nextElementSibling;
     const namedGuests = party.members.filter((member) => !member.plusOne);
     const several = namedGuests.length > 1;
+    const hasPlusOne = party.members.some((member) => member.plusOne);
     const first = (namedGuests[0] || party.members[0]).name.trim().split(/\s+/)[0];
     heading.textContent = inviteMode ? party.label : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
     heading.hidden = inviteMode || !several;
-    intro.hidden = inviteMode ? false : !several && !party.members.some((member) => member.plusOne);
+    intro.textContent = hasPlusOne
+      ? 'Please reply for everyone on this invitation, including any plus one.'
+      : 'Please reply for everyone on this invitation.';
+    intro.hidden = !several && !hasPlusOne;
     party.members.forEach((member, index) => {
       const fieldset = document.createElement('fieldset');
       fieldset.className = 'party-member';
@@ -577,13 +513,17 @@ export function initRsvp(lenis) {
       }
       option.append(name, status);
       option.addEventListener('mousedown', (event) => { event.preventDefault(); });
-      option.addEventListener('click', (event) => {
+      option.addEventListener('click', async (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (!party) return;
-        const invitation = withSheetToken(party);
-        if (party.replied) selectParty(invitation);
-        else openInvitation(invitation);
+        if (!party || busy) return;
+        try {
+          const invitation = await openParty(party);
+          if (invitation.replied) selectParty(invitation);
+          else openInvitation(invitation);
+        } catch (error) {
+          status.textContent = errorMessage(error);
+        }
       });
       li.append(option);
       results.append(li);
@@ -651,11 +591,6 @@ export function initRsvp(lenis) {
         showStep('pending');
         return;
       }
-      if (pageQuery.has('links')) {
-        renderInviteLinks(parties);
-        showStep('links');
-        return;
-      }
       const invitedId = slugId(invitePartyId());
       if (invitedId) {
         const party = parties.find((item) => item.id === invitedId);
@@ -663,7 +598,7 @@ export function initRsvp(lenis) {
           showStep('missing');
           return;
         }
-        applyInviteChrome(withSheetToken(party));
+        applyInviteChrome(party);
         return;
       }
       showStep('search');
@@ -700,9 +635,15 @@ export function initRsvp(lenis) {
       results.querySelectorAll('button')[activeSuggestion]?.click();
     }
   });
-  byId('rsvpWelcomeStart').addEventListener('click', () => {
-    if (!invitedParty) return;
-    openInvitation(invitedParty);
+  byId('rsvpWelcomeStart').addEventListener('click', async () => {
+    if (!invitedParty || busy) return;
+    try {
+      const invitation = await openParty(invitedParty);
+      invitedParty = invitation;
+      openInvitation(invitation);
+    } catch (error) {
+      status.textContent = errorMessage(error);
+    }
   });
   byId('changePartyBtn').addEventListener('click', backToSearch);
   byId('rsvpAlreadyBack').addEventListener('click', backToSearch);
@@ -717,7 +658,7 @@ export function initRsvp(lenis) {
         return { ...member, attending: response.attending, name: response.name || member.name };
       }),
     };
-    selectParty(withSheetToken(party));
+    selectParty(party);
   });
   byId('rsvpRetry').addEventListener('click', loadStatus);
 
@@ -776,13 +717,9 @@ export function initRsvp(lenis) {
     submit.textContent = 'Saving…';
     status.textContent = 'Saving your RSVP…';
     try {
-      try {
-        const data = await request(body);
-        if (!data.saved) throw new Error('Missing save confirmation');
-      } catch (error) {
-        if (error.status && error.status !== 401 && error.status !== 503) throw error;
-      }
-      rememberReply(selectedParty, responses, body.wishes);
+      const data = await request(body);
+      if (!data.saved) throw new Error('Missing save confirmation');
+      selectedParty = rememberSavedParty(selectedParty, responses, body.wishes);
       savedReply = { party: selectedParty, responses, wishes: body.wishes };
       const anyoneAttending = responses.some((response) => response.attending);
       const confirmation = confirmationMessage(anyoneAttending);

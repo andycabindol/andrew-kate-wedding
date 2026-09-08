@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 const base = '/';
-const cleanPages = ['wedding', 'reception', 'rsvp'];
+const cleanPages = ['wedding', 'reception', 'rsvp', 'admin'];
 
 function rewriteCleanUrl(url) {
   if (!url) return url;
@@ -59,6 +59,7 @@ export default defineConfig({
         wedding: resolve(__dirname, 'wedding.html'),
         reception: resolve(__dirname, 'reception.html'),
         rsvp: resolve(__dirname, 'rsvp.html'),
+        admin: resolve(__dirname, 'admin.html'),
       },
     },
   },

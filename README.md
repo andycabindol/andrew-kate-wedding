@@ -35,11 +35,15 @@ the invitation after testing. The site automatically displays **RSVPs opening
 soon** while the invitation table is empty. The former example guest list has been
 removed from public assets and is retained only as `docs/guests.example.json`.
 
-### Guest list in Google Sheets
+### Guest list
 
-The couple edits one Google Sheet. The website reads it, so a new guest or nickname
-is available on the next lookup. Same last names stay separate because each
-invitation has its own `party_id`, not because of the surname.
+The website reads invitations and replies from Supabase. Confirming an RSVP writes
+one row in `wedding_rsvps`. The next load of that invitation reads that row immediately.
+The Google Sheet is not on the live lookup or save path.
+
+The couple can still keep a sheet as the editing source, then import invitations
+into `wedding_invitations`. Same last names stay separate because each invitation
+has its own id, not because of the surname.
 
 The guest sheet is [Katie x Andrew Wedding Guests](https://docs.google.com/spreadsheets/d/1sV27HMCN8Ed9fL3sgCSeqNR4RhjGQ3alWkBz6gbONhY/edit?usp=sharing).
 
@@ -53,24 +57,10 @@ The guest sheet is [Katie x Andrew Wedding Guests](https://docs.google.com/sprea
 5. `extra_guests` is the number of unnamed plus ones for that invitation. Enter it
    once on any row of the party. Guests reply for every person, and name a plus one
    if that person is attending.
-6. Share the sheet as “Anyone with the link can view,” then copy the published CSV
-   link (File → Share → Publish to web → Guests → CSV).
-7. In the Supabase Edge Function secrets, set `RSVP_SHEET_CSV_URL` to that link.
-   Lookups refresh from the sheet about every 45 seconds.
 
-To write the RSVP checkbox back into the sheet:
+Do not put a service-role key in the website.
 
-1. Extensions → Apps Script, paste `docs/rsvp-sheet.gs`, and save.
-2. Project Settings → Script properties → add `RSVP_SHEET_SECRET` with a long random value.
-3. Deploy → New deployment → Web app. Execute as yourself, access “Anyone.”
-4. Set the same secret as `RSVP_SHEET_SECRET` and the web app URL as `RSVP_SHEET_URL`
-   on the Edge Function, then redeploy `wedding-rsvp`.
-
-The script checks `rsvp_received` and fills `attending`, plus-one names, wishes, and
-`replied_at`. Replies are still stored in Supabase if the sheet cannot be updated.
-Do not put the secret or a service-role key in the website.
-
-The JSON importer remains available for a one-time load:
+The JSON importer loads invitations into the database:
 `npm run guests:import -- /absolute/path/to/guests.json`
 
 ### Guest flow and access model
