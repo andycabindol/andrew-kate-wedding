@@ -2321,15 +2321,45 @@ article.letter {
     grid-template-columns: 1fr 1fr;
   }
 
+  .schedule .label,
+  .schedule .section-heading {
+    text-align: left;
+  }
+
   .timeline {
-    --time-col: 108px;
-    --rail-gap: 16px;
+    --rail: 16px;
+    --rail-gap: 14px;
     --item-pad: 22px;
-    --dot-offset: 8px;
+    --dot-offset: 6px;
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  .timeline__item {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+  }
+
+  .timeline__item::before {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 4px;
+  }
+
+  .timeline__item:not(:last-child)::after {
+    left: calc(var(--rail) / 2);
   }
 
   .timeline__time {
+    grid-column: 2;
+    grid-row: 1;
+    padding-top: 0;
+    margin-bottom: 6px;
     font-size: 15px;
+  }
+
+  .timeline__content {
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .timeline__title {
@@ -2353,7 +2383,9 @@ article.letter {
   }
 
   .rsvp-card {
-    padding: 36px 22px;
+    padding: 8px 0 0;
+    background: transparent;
+    border-radius: 0;
   }
 
   .rsvp-story__step {
