@@ -128,14 +128,6 @@ export function highlightUnmatched(name, query) {
   ].filter(Boolean);
 }
 
-function displayVariant(sourceName, variant) {
-  const sourceParts = String(sourceName).trim().split(/\s+/);
-  return variant.split(' ').map((part, index, parts) => {
-    if (index === parts.length - 1 && sourceParts.length > 1) return sourceParts.at(-1);
-    return part.charAt(0).toUpperCase() + part.slice(1);
-  }).join(' ');
-}
-
 function suggestionLabels(member) {
   if (member.plusOne || isPlusOneName(member.name || '')) return [];
   const labels = [];
@@ -146,9 +138,6 @@ function suggestionLabels(member) {
   };
   add(member.name);
   for (const alias of member.aliases || []) add(alias);
-  if (member.name && !isPlusOneName(member.name)) {
-    for (const variant of expandFullName(member.name)) add(displayVariant(member.name, variant));
-  }
   return labels;
 }
 
