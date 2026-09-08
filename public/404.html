@@ -7,7 +7,7 @@
       (function () {
         var path = location.pathname.replace(/\/$/, '');
         var pages = ['/wedding', '/reception', '/rsvp'];
-        var site = '/andrew-kate-wedding';
+        var site = '';
         for (var i = 0; i < pages.length; i++) {
           if (path === site + pages[i]) {
             location.replace(path + '/' + location.search + location.hash);

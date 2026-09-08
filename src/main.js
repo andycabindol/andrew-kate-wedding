@@ -211,7 +211,7 @@ document.querySelectorAll('a[href*="#"]').forEach((anchor) => {
     if (!hash || hash === '#') return;
 
     const path = href.slice(0, hashIndex);
-    const samePage = !path || path === '/' || path === '/andrew-kate-wedding' || path === '/andrew-kate-wedding/';
+    const samePage = !path || path === '/';
     if (!samePage) return;
 
     const target = document.querySelector(hash);

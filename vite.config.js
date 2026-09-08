@@ -2,7 +2,7 @@ import { copyFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
-const base = '/andrew-kate-wedding/';
+const base = '/';
 const cleanPages = ['wedding', 'reception', 'rsvp'];
 
 function rewriteCleanUrl(url) {
@@ -47,7 +47,7 @@ function cleanHtmlUrls() {
 }
 
 export default defineConfig({
-  // Project site: https://andycabindol.github.io/andrew-kate-wedding/
+  // Custom domain: https://katieandrew.wedding/
   base,
   root: '.',
   publicDir: 'public',
