@@ -95,13 +95,32 @@ lenis.on('scroll', updateNav);
 updateNav();
 
 // Mobile menu toggle
-navToggle.addEventListener('click', () => {
-  const isOpen = navMobile.classList.toggle('open');
+function setMobileNav(isOpen) {
+  navMobile.classList.toggle('open', isOpen);
+  nav.classList.toggle('nav--open', isOpen);
   navToggle.classList.toggle('active', isOpen);
-  navToggle.setAttribute('aria-expanded', isOpen);
-  navMobile.setAttribute('aria-hidden', !isOpen);
-
+  navToggle.setAttribute('aria-expanded', String(isOpen));
+  navMobile.setAttribute('aria-hidden', String(!isOpen));
   updateNav();
+}
+
+navToggle.addEventListener('click', () => {
+  setMobileNav(!navMobile.classList.contains('open'));
+});
+
+document.addEventListener('pointerdown', (event) => {
+  if (!navMobile.classList.contains('open')) return;
+  if (event.target.closest('.nav')) return;
+  event.preventDefault();
+  setMobileNav(false);
+  closeVenueMenus();
+});
+
+const desktopNav = window.matchMedia('(min-width: 810px)');
+desktopNav.addEventListener('change', (event) => {
+  if (!event.matches) return;
+  setMobileNav(false);
+  closeVenueMenus();
 });
 
 function closeVenueMenus() {
@@ -133,12 +152,8 @@ document.addEventListener('keydown', (event) => {
 
 navMobile.querySelectorAll('a').forEach((link) => {
   link.addEventListener('click', () => {
-    navMobile.classList.remove('open');
-    navToggle.classList.remove('active');
-    navToggle.setAttribute('aria-expanded', 'false');
-    navMobile.setAttribute('aria-hidden', 'true');
+    setMobileNav(false);
     closeVenueMenus();
-    updateNav();
   });
 });
 
