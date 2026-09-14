@@ -209,8 +209,7 @@ export function initSiteGate(lenis, onReady) {
     }
     intro?.remove();
     mountLockedSite(onReady);
-    revealHero();
-    return Promise.resolve();
+    return revealHero();
   }
 
   if (hasSession()) {
@@ -256,6 +255,7 @@ export function initSiteGate(lenis, onReady) {
       await new Promise((done) => window.setTimeout(done, 280));
       lenis?.start();
       await dismiss(gate);
+      await revealHero();
       resolve();
     });
   });

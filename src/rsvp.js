@@ -423,7 +423,7 @@ export function initRsvp(lenis) {
     canvas.setAttribute('aria-hidden', 'true');
     document.body.append(canvas);
     const context = canvas.getContext('2d');
-    const colors = ['#2f7d4a', '#c4a574', '#e7d3bf', '#f4efe6', '#d9a3a0'];
+    const colors = ['#1f4b3e', '#e8c5c9', '#d9e6e0', '#f6eaec', '#2a5c4c'];
     const box = mark.getBoundingClientRect();
     const originX = box.left + box.width / 2;
     const originY = box.top + box.height / 2;
@@ -740,6 +740,8 @@ export function initRsvp(lenis) {
       byId('rsvpSuccessMessage').textContent = confirmation.title;
       byId('rsvpSuccessDetail').textContent = confirmation.detail;
       byId('rsvpSummary').replaceChildren(...summaryItems(selectedParty, responses));
+      const prepareNote = byId('rsvpPrepareNote');
+      if (prepareNote) prepareNote.hidden = !anyoneAttending;
       showStep('success');
       scrollToStep(byId('rsvpSuccessStep'), () => {
         focus(byId('rsvpSuccessHeading'));

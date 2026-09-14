@@ -70,7 +70,8 @@
             </div>
           </div>
           <a href="/#schedule">Schedule</a>
-          <a href="/#contact">Contact</a>
+          <a href="/prepare">Prepare</a>
+          <a href="/party">Wedding Party</a>
           <a href="/rsvp" class="nav__rsvp-btn">RSVP</a>
         </nav>
 
@@ -94,7 +95,8 @@
           </div>
         </div>
         <a href="/#schedule">Schedule</a>
-        <a href="/#contact">Contact</a>
+        <a href="/prepare">Prepare</a>
+        <a href="/party">Wedding Party</a>
         <a href="/rsvp">RSVP</a>
       </div>
     </header>
@@ -129,6 +131,66 @@
 
       <section class="section letter" aria-labelledby="save-the-date-title">
         <div class="letter-stage">
+          <div class="letter-flowers" aria-hidden="true">
+            <!-- 8-petal bloom -->
+            <svg class="letter-flower letter-flower--1" viewBox="0 0 48 48" fill="none">
+              <g fill="#e8c5c9">
+                <ellipse cx="24" cy="12" rx="6" ry="9" />
+                <ellipse cx="24" cy="36" rx="6" ry="9" />
+                <ellipse cx="12" cy="24" rx="9" ry="6" />
+                <ellipse cx="36" cy="24" rx="9" ry="6" />
+                <ellipse cx="14.5" cy="14.5" rx="5.5" ry="8" transform="rotate(-45 14.5 14.5)" />
+                <ellipse cx="33.5" cy="14.5" rx="5.5" ry="8" transform="rotate(45 33.5 14.5)" />
+                <ellipse cx="14.5" cy="33.5" rx="5.5" ry="8" transform="rotate(45 14.5 33.5)" />
+                <ellipse cx="33.5" cy="33.5" rx="5.5" ry="8" transform="rotate(-45 33.5 33.5)" />
+              </g>
+              <circle cx="24" cy="24" r="5" fill="#d4a8ae" />
+            </svg>
+            <!-- soft 5-petal -->
+            <svg class="letter-flower letter-flower--2" viewBox="0 0 48 48" fill="none">
+              <g fill="#f0d4d8">
+                <ellipse cx="24" cy="11" rx="5" ry="9" />
+                <ellipse cx="35.5" cy="19" rx="5" ry="9" transform="rotate(72 35.5 19)" />
+                <ellipse cx="31.5" cy="33.5" rx="5" ry="9" transform="rotate(144 31.5 33.5)" />
+                <ellipse cx="16.5" cy="33.5" rx="5" ry="9" transform="rotate(-144 16.5 33.5)" />
+                <ellipse cx="12.5" cy="19" rx="5" ry="9" transform="rotate(-72 12.5 19)" />
+              </g>
+              <circle cx="24" cy="24" r="4.2" fill="#d4a8ae" />
+            </svg>
+            <!-- bud -->
+            <svg class="letter-flower letter-flower--3" viewBox="0 0 48 48" fill="none">
+              <ellipse cx="24" cy="26" rx="9" ry="12" fill="#e8c5c9" />
+              <ellipse cx="24" cy="22" rx="6.5" ry="9" fill="#f3dce0" />
+              <ellipse cx="24" cy="19" rx="3.5" ry="5.5" fill="#d4a8ae" />
+              <path d="M24 38v6" stroke="#9eb8aa" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <!-- tiny 4-petal -->
+            <svg class="letter-flower letter-flower--4" viewBox="0 0 48 48" fill="none">
+              <g fill="#f3dce0">
+                <ellipse cx="24" cy="14" rx="4" ry="7" />
+                <ellipse cx="24" cy="34" rx="4" ry="7" />
+                <ellipse cx="14" cy="24" rx="7" ry="4" />
+                <ellipse cx="34" cy="24" rx="7" ry="4" />
+              </g>
+              <circle cx="24" cy="24" r="3.2" fill="#e8c5c9" />
+            </svg>
+            <!-- open rose-ish -->
+            <svg class="letter-flower letter-flower--5" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="11" fill="#f0d4d8" />
+              <circle cx="24" cy="24" r="7.5" fill="#e8c5c9" />
+              <circle cx="24" cy="24" r="4" fill="#d4a8ae" />
+              <circle cx="24" cy="24" r="1.6" fill="#c48f96" />
+            </svg>
+            <!-- sprig / leaf pair -->
+            <svg class="letter-flower letter-flower--6" viewBox="0 0 48 48" fill="none">
+              <path d="M24 40C24 40 18 28 18 20c0-5 2.8-9 6-9s6 4 6 9c0 8-6 20-6 20z" fill="#c5d9cf" />
+              <path d="M24 40C24 40 12 30 10 22c-1.2-4.5 1.2-8 4.2-7.2 3 .8 6.2 6.5 9.8 25.2z" fill="#b7d0c4" opacity="0.9" />
+              <path d="M24 40C24 40 36 30 38 22c1.2-4.5-1.2-8-4.2-7.2-3 .8-6.2 6.5-9.8 25.2z" fill="#9eb8aa" opacity="0.85" />
+            </svg>
+            <span class="letter-leaf letter-leaf--1"></span>
+            <span class="letter-leaf letter-leaf--2"></span>
+            <span class="letter-leaf letter-leaf--3"></span>
+          </div>
           <div class="letter-stack">
             <article class="letter">
               <div class="letter__frame">
@@ -294,9 +356,21 @@
             <p class="label label--caslon">Dress code</p>
             <h2 class="section-heading">What to wear</h2>
             <p class="body-text">
-              Out of reverence for the sacrament of marriage and its sacred beauty, we ask our
-              guests to dress in cocktail to semi-formal attire. The wedding ceremony will be held
-              in a Catholic church, so we humbly ask that modesty be observed.
+              Cocktail to semi-formal attire. The ceremony is in a Catholic church, so we ask that
+              guests dress modestly for Mass.
+            </p>
+            <p class="body-text dress-code__note">
+              The reception is outdoors under a pavilion at Raspberry Hill — please dress for the
+              weather that day.
+            </p>
+            <p class="body-text dress-code__inspiration">
+              <a
+                data-dress-inspiration
+                href="https://www.pinterest.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Outfit ideas on Pinterest</a
+              >
             </p>
           </div>
         </div>
@@ -309,27 +383,27 @@
 
           <div class="timeline">
             <div class="timeline__item">
-              <span class="timeline__time">1:45 PM</span>
+              <span class="timeline__time">1:15 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Arrive @ St. Thomas Aquinas</h3>
                 <p class="body-text">
-                  Please arrive by 1:45 PM so our ushers can find you a seat before the ceremony begins.
+                  Please arrive by 1:15 PM so our ushers can find you a seat before the ceremony begins.
                 </p>
               </div>
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">2:00 PM</span>
+              <span class="timeline__time">1:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Nuptial Mass</h3>
                 <p class="body-text">
-                  Mass will begin at 2:00 PM at St. Thomas Aquinas.
+                  Mass will begin at 1:30 PM at St. Thomas Aquinas.
                 </p>
               </div>
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">4:00 PM</span>
+              <span class="timeline__time">3:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Cocktail Hour</h3>
                 <p class="body-text">
@@ -340,7 +414,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">5:00 PM</span>
+              <span class="timeline__time">4:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Dinner</h3>
                 <p class="body-text">
@@ -351,7 +425,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">6:15 PM</span>
+              <span class="timeline__time">5:45 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Speeches</h3>
                 <p class="body-text">
@@ -362,7 +436,7 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">7:00 PM</span>
+              <span class="timeline__time">6:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Cake &amp; Dessert</h3>
                 <p class="body-text">Details to come!</p>
@@ -370,22 +444,22 @@
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">7:30 PM</span>
+              <span class="timeline__time">7:00 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Dance</h3>
                 <p class="body-text">
                   The dance floor will open with our first dance. After that, it's all yours. Our
-                  DJ will keep the jams rolling until 10:00 PM.
+                  DJ will keep the jams rolling until 9:30 PM.
                 </p>
               </div>
             </div>
 
             <div class="timeline__item">
-              <span class="timeline__time">10:00 PM</span>
+              <span class="timeline__time">9:30 PM</span>
               <div class="timeline__content">
                 <h3 class="timeline__title">Ending</h3>
                 <p class="body-text">
-                  The reception will wrap up at 10:00 PM. We hope that you'll have had a great evening of
+                  The reception will wrap up at 9:30 PM. We hope that you'll have had a great evening of
                   food, friendship, and tearing up the dance floor.
                 </p>
               </div>
@@ -399,19 +473,11 @@
           <div class="gifts__card">
             <h2 class="section-heading section-heading--center">Gift Registry</h2>
             <p class="body-text body-text--center gifts__intro">
-              Sharing our wedding day with you is what matters most to us. If you would like to give
-              a gift, a contribution to our registry would be greatly appreciated.
+              If you would like to give a gift, a contribution to our registry would be greatly
+              appreciated.
             </p>
-            <div class="gifts__links">
-              <a
-                href="https://registry.theknot.com/andrew-torres-katie-ferguson-may-2027-ia/78612430"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn--secondary"
-                >Open Registry</a
-              >
-            </div>
             <div class="gifts__items" aria-live="polite"></div>
+            <div class="gifts__links"></div>
           </div>
         </div>
       </section>
@@ -518,8 +584,9 @@
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
-                  Cocktail to semi-formal, and modest for the church. The details are in
-                  <a href="/#what-to-wear">What to wear</a>.
+                  Cocktail to semi-formal, modest for the church ceremony, and comfortable for
+                  outdoor pavilion weather. More details are in
+                  <a href="/prepare#what-to-wear">What to wear</a>.
                 </p>
               </div>
             </div>
@@ -567,7 +634,7 @@
               </button>
               <div class="accordion__panel">
                 <p class="body-text">
-                  Please arrive by 1:45 PM for the 2:00 PM Nuptial Mass, then join us at Raspberry
+                  Please arrive by 1:15 PM for the 1:30 PM Nuptial Mass, then join us at Raspberry
                   Hill. The full timeline is in
                   <a href="/#schedule">Our day</a>.
                 </p>
@@ -596,7 +663,7 @@
       <section class="section contact" id="contact">
         <div class="container contact__inner">
           <h2 class="section-heading section-heading--center">Still have more questions?</h2>
-          <a href="mailto:katieferg93@gmail.com" class="contact__email">katieferg93@gmail.com</a>
+          <a href="mailto:AndrewKatieTorres@gmail.com" class="contact__email">AndrewKatieTorres@gmail.com</a>
         </div>
       </section>
     </main>
@@ -607,6 +674,8 @@
         <nav class="footer__links">
           <a href="/wedding">Wedding</a>
           <a href="/reception">Reception</a>
+          <a href="/prepare">Prepare</a>
+          <a href="/party">Wedding Party</a>
           <a href="/#schedule">Schedule</a>
           <a href="/rsvp">RSVP</a>
         </nav>

@@ -123,6 +123,7 @@ function updateHeroParallax() {
   const progress = Math.min(Math.max(lenis.scroll / heroHeight, 0), 1);
   const y = HERO_PARALLAX_START - progress * HERO_PARALLAX_TRAVEL;
 
+  // Keep scale locked to the CSS resting size so scroll only moves, never zooms.
   heroImage.style.transform = `translate3d(0, ${y}px, 0) scale(1.08)`;
 }
 
@@ -164,6 +165,31 @@ lenis.on('scroll', updateNav);
 updateNav();
 bindNav(nav);
 
+function injectDevNavLinks() {
+  if (!import.meta.env.DEV) return;
+
+  const path = location.pathname.replace(/\/$/, '') || '/';
+  document.querySelectorAll('#navLinks, #navMobile').forEach((nav) => {
+    if (nav.querySelector('[data-dev-nav="gallery"]')) return;
+
+    const link = document.createElement('a');
+    link.href = '/gallery';
+    link.textContent = 'Gallery';
+    link.dataset.devNav = 'gallery';
+    if (path === '/gallery') link.setAttribute('aria-current', 'page');
+
+    const rsvp = nav.querySelector('.nav__rsvp-btn, a[href="/rsvp"]');
+    if (rsvp) rsvp.before(link);
+    else nav.append(link);
+  });
+}
+
+injectDevNavLinks();
+
+if (import.meta.env.PROD && location.pathname.replace(/\/$/, '') === '/gallery') {
+  location.replace('/');
+}
+
 // Carousels
 function initCarousel(id) {
   const carousel = document.getElementById(id);
@@ -196,6 +222,160 @@ function initCarousel(id) {
 
 initCarousel('weddingCarousel');
 initCarousel('receptionCarousel');
+
+function initLetterFlowers(scroll) {
+  const stage = document.querySelector('.letter-stage');
+  const flowers = document.querySelector('.letter-flowers');
+  const card = document.querySelector('.letter-stack');
+  if (!stage || !flowers || !card || flowers.dataset.bound === 'true') return;
+  flowers.dataset.bound = 'true';
+
+  const petals = [...flowers.querySelectorAll('.letter-flower, .letter-leaf')].map((petal) => {
+    const styles = getComputedStyle(petal);
+    const depth = Number.parseFloat(styles.getPropertyValue('--parallax-depth')) || 0.35;
+    const drift = Number.parseFloat(styles.getPropertyValue('--parallax-drift')) || 1;
+    return {
+      el: petal,
+      depth,
+      drift,
+      revealX: 0,
+      revealY: 0,
+      revealScale: 1,
+      revealOpacity: 0,
+    };
+  });
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let revealing = false;
+
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+  const paintPetal = (petal) => {
+    const { el, revealX, revealY, revealScale, revealOpacity } = petal;
+    el.style.setProperty('--reveal-x', `${revealX.toFixed(2)}px`);
+    el.style.setProperty('--reveal-y', `${revealY.toFixed(2)}px`);
+    el.style.setProperty('--reveal-scale', revealScale.toFixed(4));
+    el.style.opacity = String(revealOpacity);
+  };
+
+  const updateParallax = () => {
+    if (!flowers.classList.contains('is-parallaxing')) return;
+    const rect = stage.getBoundingClientRect();
+    const view = window.innerHeight || 1;
+    const progress = (view * 0.55 - (rect.top + rect.height * 0.5)) / view;
+    const clamped = Math.max(-1.15, Math.min(1.15, progress));
+
+    petals.forEach((petal) => {
+      const { el, depth, drift } = petal;
+      const y = clamped * depth * 140;
+      const x = clamped * depth * 48 * drift;
+      const scale = 1 + clamped * depth * 0.04;
+      el.style.setProperty('--parallax-x', `${x.toFixed(2)}px`);
+      el.style.setProperty('--parallax-y', `${y.toFixed(2)}px`);
+      el.style.setProperty('--parallax-scale', scale.toFixed(4));
+      // Never set style.transform — CSS composes parallax + reveal.
+      paintPetal(petal);
+    });
+  };
+
+  const reveal = () => {
+    if (flowers.classList.contains('is-revealed') || revealing) return;
+    revealing = true;
+    flowers.classList.add('is-revealed');
+
+    if (prefersReducedMotion) {
+      flowers.classList.add('is-static', 'is-parallaxing');
+      petals.forEach((petal) => {
+        petal.revealX = 0;
+        petal.revealY = 0;
+        petal.revealScale = 1;
+        petal.revealOpacity = 1;
+        paintPetal(petal);
+      });
+      revealing = false;
+      updateParallax();
+      return;
+    }
+
+    const origin = card.getBoundingClientRect();
+    const ox = origin.left + origin.width / 2;
+    const oy = origin.top + origin.height / 2;
+    const duration = 900;
+    const stagger = 28;
+    const start = performance.now();
+
+    petals.forEach((petal) => {
+      const rect = petal.el.getBoundingClientRect();
+      const px = rect.left + rect.width / 2;
+      const py = rect.top + rect.height / 2;
+      petal.fromX = (ox - px) * 0.28;
+      petal.fromY = (oy - py) * 0.28;
+      petal.revealX = petal.fromX;
+      petal.revealY = petal.fromY;
+      petal.revealScale = 0.55;
+      petal.revealOpacity = 0;
+      paintPetal(petal);
+    });
+
+    // Parallax runs during reveal; CSS composes both layers.
+    flowers.classList.add('is-parallaxing');
+    updateParallax();
+
+    const tick = (now) => {
+      let allDone = true;
+
+      petals.forEach((petal, index) => {
+        const local = (now - start - index * stagger) / duration;
+        if (local < 1) allDone = false;
+        const t = easeOut(Math.max(0, Math.min(1, local)));
+        petal.revealX = petal.fromX * (1 - t);
+        petal.revealY = petal.fromY * (1 - t);
+        petal.revealScale = 0.55 + 0.45 * t;
+        petal.revealOpacity = t;
+      });
+
+      updateParallax();
+
+      if (!allDone) {
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      petals.forEach((petal) => {
+        petal.revealX = 0;
+        petal.revealY = 0;
+        petal.revealScale = 1;
+        petal.revealOpacity = 1;
+        paintPetal(petal);
+      });
+      revealing = false;
+      updateParallax();
+    };
+
+    requestAnimationFrame(tick);
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        reveal();
+        observer.disconnect();
+      });
+    },
+    { threshold: 0.3, rootMargin: '0px 0px -6% 0px' },
+  );
+  observer.observe(stage);
+
+  if (prefersReducedMotion) {
+    reveal();
+    return;
+  }
+
+  scroll.on('scroll', updateParallax);
+  updateParallax();
+}
+
+initLetterFlowers(lenis);
 
 // FAQ accordion
 const accordion = document.getElementById('faqAccordion');
