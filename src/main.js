@@ -126,38 +126,6 @@ function enhanceRsvpBlooms(root = document) {
   root.querySelectorAll('.nav__rsvp-btn, a.btn[href="/rsvp"], #rsvpWelcomeStart').forEach(attachBloomFlourish);
 }
 
-function initHeroArc() {
-  const ring = document.querySelector('[data-hero-arc-ring]');
-  if (!ring || ring.childElementCount) return;
-
-  const assets = [
-    '/images/letter/rose.png?v=2',
-    '/images/letter/blossom.png?v=2',
-    '/images/letter/peony.png?v=2',
-    '/images/letter/wildrose.png?v=2',
-    '/images/letter/bud.png?v=2',
-    '/images/letter/leaf.png?v=2',
-  ];
-  const sizes = [70, 46, 58, 38, 54, 42, 64, 48, 56, 36];
-  const count = 52;
-  const frag = document.createDocumentFragment();
-
-  for (let i = 0; i < count; i += 1) {
-    const img = document.createElement('img');
-    img.className = 'hero-arc__bloom';
-    img.src = assets[i % assets.length];
-    img.alt = '';
-    img.width = 256;
-    img.height = 256;
-    img.style.setProperty('--i', String((360 / count) * i));
-    img.style.setProperty('--size', `${sizes[i % sizes.length]}px`);
-    img.style.setProperty('--tilt', `${((i % 7) - 3) * 3}deg`);
-    frag.append(img);
-  }
-
-  ring.append(frag);
-}
-
 function bindNav(nav) {
   if (!nav || nav.dataset.bound) return;
   nav.dataset.bound = 'true';
@@ -391,7 +359,6 @@ function initLetterFlowers(scroll) {
 }
 
 initLetterFlowers(lenis);
-initHeroArc();
 
 // FAQ accordion
 const accordion = document.getElementById('faqAccordion');
