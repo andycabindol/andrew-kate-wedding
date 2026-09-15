@@ -89,11 +89,11 @@ function sameHash(left, right) {
   return mismatch === 0;
 }
 
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
+function easeOutCubic(t) {
+  return 1 - ((1 - t) ** 3);
 }
 
-function playMeet(gate) {
+async function playMeet(gate) {
   const katie = gate.querySelector('.site-gate__name--katie');
   const andrew = gate.querySelector('.site-gate__name--andrew');
   const mark = gate.querySelector('.site-gate__mark');
@@ -105,32 +105,46 @@ function playMeet(gate) {
   katie.style.transform = 'none';
   andrew.style.transform = 'none';
 
+  try {
+    await document.fonts.ready;
+  } catch {
+    // Ignore font loading failures and measure with whatever is available.
+  }
+
+  // Wait one frame so swapped glyphs can lay out before we measure travel.
+  await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
+  const katieHome = katie.getBoundingClientRect();
+  const andrewHome = andrew.getBoundingClientRect();
+  const markHome = mark.getBoundingClientRect();
+  const gap = 16;
+  const katieDistance = Math.max(0, markHome.left - gap - katieHome.right);
+  const andrewDistance = Math.max(0, andrewHome.left - markHome.right - gap);
+
   return new Promise((resolve) => {
     const started = performance.now();
-    const katieHome = katie.getBoundingClientRect();
-    const andrewHome = andrew.getBoundingClientRect();
-    const markHome = mark.getBoundingClientRect();
-    const gap = 16;
-    const katieDistance = Math.max(0, markHome.left - gap - katieHome.right);
-    const andrewDistance = Math.max(0, andrewHome.left - markHome.right - gap);
+
+    function paint(progress) {
+      const value = Math.round(progress * 100);
+      percent.textContent = `${value}%`;
+      fill.style.transform = `scaleX(${progress})`;
+      katie.style.transform = `translate3d(${katieDistance * progress}px, 0, 0)`;
+      andrew.style.transform = `translate3d(${-andrewDistance * progress}px, 0, 0)`;
+    }
+
+    paint(0);
 
     function frame(now) {
       const t = Math.min(1, (now - started) / duration);
-      const eased = easeInOut(t);
-      const value = Math.round(eased * 100);
-
-      percent.textContent = `${value}%`;
-      fill.style.transform = `scaleX(${eased})`;
-      katie.style.transform = `translate3d(${katieDistance * eased}px, 0, 0)`;
-      andrew.style.transform = `translate3d(${-andrewDistance * eased}px, 0, 0)`;
+      paint(easeOutCubic(t));
 
       if (t < 1) {
         requestAnimationFrame(frame);
         return;
       }
 
-      percent.textContent = '100%';
-      window.setTimeout(resolve, reduced ? 40 : 80);
+      paint(1);
+      window.setTimeout(resolve, reduced ? 60 : 220);
     }
 
     requestAnimationFrame(frame);
@@ -142,17 +156,23 @@ function dismiss(gate) {
   document.querySelectorAll('header, main, footer').forEach((el) => {
     el.inert = false;
   });
-  document.documentElement.classList.remove('is-locked', 'is-intro');
 
   if (reduced) {
+    document.documentElement.classList.remove('is-locked', 'is-intro');
     document.documentElement.classList.add('is-unlocked');
     gate.remove();
     return Promise.resolve();
   }
 
+  // Keep intro visibility until leave starts, then reveal the page underneath
+  // without unlocking overflow yet (scrollbar would shift the settled names).
   gate.classList.add('is-leaving');
+  document.documentElement.classList.add('is-gate-leaving');
+  document.documentElement.classList.remove('is-locked', 'is-intro');
+
   return new Promise((resolve) => {
     window.setTimeout(() => {
+      document.documentElement.classList.remove('is-gate-leaving');
       document.documentElement.classList.add('is-unlocked');
       gate.remove();
       resolve();
@@ -190,8 +210,8 @@ function playIntro(intro, lenis, onReady) {
       playMeet(intro).then(async () => {
         rememberIntro();
         mountLockedSite(onReady);
-        lenis?.start();
         await dismiss(intro);
+        lenis?.start();
         await revealHero();
         resolve();
       });
@@ -253,8 +273,8 @@ export function initSiteGate(lenis, onReady) {
       mountLockedSite(onReady);
       enter.classList.add('is-done');
       await new Promise((done) => window.setTimeout(done, 280));
-      lenis?.start();
       await dismiss(gate);
+      lenis?.start();
       await revealHero();
       resolve();
     });

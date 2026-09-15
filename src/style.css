@@ -3336,6 +3336,10 @@ article.letter {
     text-align: left;
   }
 
+  .schedule .label {
+    justify-content: flex-start;
+  }
+
   .timeline {
     --rail: 16px;
     --rail-gap: 14px;
@@ -3736,7 +3740,9 @@ button:disabled { cursor: wait; opacity: .55; }
 html.is-locked,
 html.is-locked body,
 html.is-intro,
-html.is-intro body {
+html.is-intro body,
+html.is-gate-leaving,
+html.is-gate-leaving body {
   overflow: hidden;
   height: 100%;
 }
@@ -3902,8 +3908,10 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   position: absolute;
   inset: 0;
   width: 100%;
-  display: grid;
-  align-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 28px;
   padding: 0;
   background-color: var(--color-bg);
@@ -3911,6 +3919,8 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   background-blend-mode: multiply;
   opacity: 0;
   pointer-events: none;
+  text-align: center;
+  overflow: hidden;
 }
 
 .site-gate__load[hidden] {
@@ -3947,25 +3957,35 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   right: 28px;
 }
 
+.site-gate__mark {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .site-gate__name {
   will-change: transform;
 }
 
-.site-gate__mark {
-  left: 50%;
-  transform: translateX(-50%);
+.site-gate__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, 70%);
 }
 
 .site-gate__percent {
   font-family: var(--font-serif);
   font-size: clamp(28px, 4vw, 44px);
   letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  width: 100%;
 }
 
 .site-gate__meter {
-  width: min(420px, 70%);
+  width: 100%;
   height: 1px;
-  margin: 0 auto;
   background: rgba(31, 75, 62, 0.16);
   overflow: hidden;
 }
@@ -4043,6 +4063,10 @@ html.is-unlocked .site-gate:not(.is-leaving) {
     transform: translateY(-8vh);
   }
 
+  .site-gate__load {
+    padding: 0;
+  }
+
   .site-gate__name--katie {
     left: 16px;
   }
@@ -4058,6 +4082,10 @@ html.is-unlocked .site-gate:not(.is-leaving) {
   .site-gate__name,
   .site-gate__mark {
     font-size: 40px;
+  }
+
+  .site-gate__names {
+    height: 40px;
   }
 }
 
