@@ -22,7 +22,15 @@ function setup() {
   const search = async () => (await (await call({ action: 'search', name: 'Alex Guest' })).json()).parties[0].token;
   return { call, search, rows, expire: () => { clock += 31 * 60000; }, fail: () => { failSave = true; }, close: () => { open = false; }, limit: () => { allowed = false; } };
 }
-const valid = (token) => ({ action: 'submit', token, responses: [{ id: 'alex', attending: true }, { id: 'jamie', attending: false }], wishes: 'Congratulations!' });
+const valid = (token) => ({
+  action: 'submit',
+  token,
+  responses: [
+    { id: 'alex', ceremony: true, reception: true },
+    { id: 'jamie', ceremony: false, reception: false },
+  ],
+  wishes: 'Congratulations!',
+});
 
 test('name normalization supports accents, curly apostrophes and whitespace', () => {
   assert.equal(normalizeName('  José   O’Brien  '), "jose o'brien");
@@ -70,10 +78,15 @@ test('saves per-person responses and wishes; repeat submission updates a single 
   assert.deepEqual(await (await app.call(valid(token))).json(), { saved: true });
   assert.equal(app.rows.get(party.id).wishes, 'Congratulations!');
   assert.equal(app.rows.get(party.id).responses[1].attending, false);
-  const changed = valid(token); changed.responses[1].attending = true;
+  assert.equal(app.rows.get(party.id).responses[1].ceremony, false);
+  assert.equal(app.rows.get(party.id).responses[1].reception, false);
+  const changed = valid(token);
+  changed.responses[1] = { id: 'jamie', ceremony: true, reception: false };
   await app.call(changed);
   assert.equal(app.rows.size, 1);
   assert.equal(app.rows.get(party.id).responses[1].attending, true);
+  assert.equal(app.rows.get(party.id).responses[1].ceremony, true);
+  assert.equal(app.rows.get(party.id).responses[1].reception, false);
 });
 test('rejects a forged, missing or expired invitation token', async () => {
   const app = setup(); const token = await app.search();

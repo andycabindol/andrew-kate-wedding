@@ -6,6 +6,7 @@ export function initRsvp(lenis) {
   const byId = (id) => document.getElementById(id);
   const searchForm = byId('rsvpLookupForm');
   const input = byId('guestSearch');
+  const clearBtn = byId('guestSearchClear');
   const results = byId('guestResults');
   const form = byId('rsvpForm');
   const members = byId('partyMembers');
@@ -38,6 +39,8 @@ export function initRsvp(lenis) {
     if (story) story.hidden = screen !== 'search';
     const back = byId('rsvpBack');
     if (back && screen !== 'search') back.hidden = true;
+    const card = byId('rsvpCard');
+    if (card) card.classList.toggle('is-success', screen === 'success');
     status.textContent = '';
   }
 
@@ -201,6 +204,26 @@ export function initRsvp(lenis) {
     return guestList;
   }
 
+  function isAttendingAny(answer) {
+    if (!answer) return false;
+    if (typeof answer.ceremony === 'boolean' || typeof answer.reception === 'boolean') {
+      return answer.ceremony === true || answer.reception === true;
+    }
+    return answer.attending === true;
+  }
+
+  function attendanceLabel(answer) {
+    const ceremony = answer?.ceremony === true;
+    const reception = answer?.reception === true;
+    if (ceremony && reception) return 'Ceremony & reception';
+    if (ceremony) return 'Ceremony only';
+    if (reception) return 'Reception only';
+    if (answer?.ceremony === false && answer?.reception === false) return 'Unable to attend';
+    if (answer?.attending === true) return 'Attending';
+    if (answer?.attending === false) return 'Unable to attend';
+    return 'No response';
+  }
+
   function rememberSavedParty(party, responses, wishes) {
     const saved = {
       ...party,
@@ -209,9 +232,13 @@ export function initRsvp(lenis) {
       members: party.members.map((member, index) => {
         const answer = responses[index] || {};
         const named = typeof answer.name === 'string' ? answer.name.trim() : '';
+        const ceremony = typeof answer.ceremony === 'boolean' ? answer.ceremony : answer.attending;
+        const reception = typeof answer.reception === 'boolean' ? answer.reception : answer.attending;
         return {
           ...member,
-          attending: answer.attending,
+          attending: ceremony === true || reception === true,
+          ceremony,
+          reception,
           ...(member.plusOne && named ? { name: named } : {}),
         };
       }),
@@ -221,7 +248,7 @@ export function initRsvp(lenis) {
   }
 
   function attendanceLine(members) {
-    const attending = members.filter((member) => member.attending === true).length;
+    const attending = members.filter((member) => isAttendingAny(member)).length;
     const noun = members.length === 1 ? 'guest' : 'guests';
     return `${attending} of ${members.length} ${noun} ${attending === 1 ? 'is' : 'are'} attending.`;
   }
@@ -239,8 +266,9 @@ export function initRsvp(lenis) {
 
   function summaryItems(party, responses = party.members) {
     return responses.map((response, index) => {
-      const attending = response.attending === true;
-      const unable = response.attending === false;
+      const attending = isAttendingAny(response);
+      const unable = response.ceremony === false && response.reception === false
+        || (response.attending === false && response.ceremony == null && response.reception == null);
       const row = document.createElement('li');
       if (attending) row.className = 'is-attending';
       if (unable) row.className = 'is-unable';
@@ -254,7 +282,7 @@ export function initRsvp(lenis) {
       if (attending) mark.append(phosphorIcon('M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z'));
       if (unable) mark.append(phosphorIcon('M204.24,195.76a6,6,0,0,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z'));
       const label = document.createElement('span');
-      label.textContent = attending ? 'Attending' : unable ? 'Unable to attend' : 'No response';
+      label.textContent = attendanceLabel(response);
       answer.append(mark, label);
       row.append(name, answer);
       return row;
@@ -339,39 +367,67 @@ export function initRsvp(lenis) {
     const intro = heading.nextElementSibling;
     const namedGuests = party.members.filter((member) => !member.plusOne);
     const several = namedGuests.length > 1;
-    const hasPlusOne = party.members.some((member) => member.plusOne);
     const first = (namedGuests[0] || party.members[0]).name.trim().split(/\s+/)[0];
     heading.textContent = inviteMode ? party.label : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
     heading.hidden = inviteMode || !several;
-    intro.textContent = hasPlusOne
-      ? 'Please reply for everyone on this invitation, including any plus one.'
-      : 'Please reply for everyone on this invitation.';
-    intro.hidden = !several && !hasPlusOne;
+    intro.textContent = party.members.length > 1
+      ? 'Check the events each person will attend. Leave a box unchecked if they can’t make that part.'
+      : 'Check the events you’ll attend. Leave a box unchecked if you can’t make that part.';
+    intro.hidden = false;
+
+    const table = document.createElement('div');
+    table.className = 'party-attendance';
+
+    const head = document.createElement('div');
+    head.className = 'party-attendance__head';
+    head.setAttribute('aria-hidden', 'true');
+    const headGuest = document.createElement('span');
+    headGuest.className = 'party-attendance__spacer';
+    head.append(headGuest);
+    [['ceremony', weddingConfig.events.ceremony], ['reception', weddingConfig.events.reception]].forEach(([, event]) => {
+      const col = document.createElement('span');
+      col.className = 'party-attendance__event';
+      const title = document.createElement('strong');
+      title.textContent = event.label;
+      const detail = document.createElement('small');
+      detail.textContent = event.detail;
+      col.append(title, detail);
+      head.append(col);
+    });
+    table.append(head);
+
     party.members.forEach((member, index) => {
-      const fieldset = document.createElement('fieldset');
-      fieldset.className = 'party-member';
       const row = document.createElement('div');
-      row.className = 'party-member__row';
-      const name = document.createElement('span');
+      row.className = 'party-member';
+
+      const name = document.createElement('p');
       name.id = `party-member-name-${index}`;
       name.className = 'party-member__name';
       name.textContent = member.name;
-      fieldset.setAttribute('aria-labelledby', name.id);
-      const choices = document.createElement('div');
-      choices.className = 'party-member__choices';
-      [['yes', 'Attending'], ['no', 'Unable to attend']].forEach(([value, text]) => {
+
+      const checks = document.createElement('div');
+      checks.className = 'party-member__checks';
+
+      [['ceremony', weddingConfig.events.ceremony], ['reception', weddingConfig.events.reception]].forEach(([key, event]) => {
         const label = document.createElement('label');
-        label.className = 'party-member__choice';
-        const radio = document.createElement('input');
-        Object.assign(radio, { type: 'radio', name: `attending-${index}`, value, required: true });
-        if ((value === 'yes' && member.attending === true) || (value === 'no' && member.attending === false)) radio.checked = true;
+        label.className = 'party-member__check';
+        const input = document.createElement('input');
+        Object.assign(input, {
+          type: 'checkbox',
+          name: `${key}-${index}`,
+          value: 'yes',
+        });
+        input.setAttribute('aria-label', `${event.label} for ${member.name}`);
+        if (member[key] === true) input.checked = true;
         const caption = document.createElement('span');
-        caption.textContent = text;
-        label.append(radio, caption);
-        choices.append(label);
+        caption.className = 'party-member__check-label';
+        caption.textContent = event.label;
+        label.append(input, caption);
+        checks.append(label);
       });
-      row.append(name, choices);
-      fieldset.append(row);
+
+      row.append(name, checks);
+
       if (member.plusOne) {
         const guestFields = document.createElement('div');
         guestFields.className = 'party-member__guest';
@@ -382,26 +438,70 @@ export function initRsvp(lenis) {
         nameLabel.textContent = 'Guest’s name';
         const nameInput = document.createElement('input');
         nameInput.id = `guest-name-${index}`;
-        Object.assign(nameInput, { type: 'text', name: `guest-name-${index}`, maxLength: 80, autocomplete: 'name', placeholder: 'First and Last name' });
+        Object.assign(nameInput, {
+          type: 'text',
+          name: `guest-name-${index}`,
+          maxLength: 80,
+          autocomplete: 'name',
+          placeholder: 'First and Last name',
+        });
         nameInput.addEventListener('input', () => { nameInput.setCustomValidity(''); });
         const savedName = String(member.name || '').trim();
-        if (member.attending === true && savedName && !/^plus one( \d+)?$/i.test(savedName)) {
-          guestFields.hidden = false;
-          nameInput.value = savedName;
-        }
-        choices.addEventListener('change', () => {
-          const attending = choices.querySelector('input:checked')?.value === 'yes';
+        const syncGuest = () => {
+          const attending = isAttendingAny({
+            ceremony: row.querySelector(`[name="ceremony-${index}"]`)?.checked,
+            reception: row.querySelector(`[name="reception-${index}"]`)?.checked,
+          });
           guestFields.hidden = !attending;
           if (!attending) {
             nameInput.value = '';
             nameInput.setCustomValidity('');
           }
-        });
+        };
+        if (isAttendingAny(member) && savedName && !/^plus one( \d+)?$/i.test(savedName)) {
+          guestFields.hidden = false;
+          nameInput.value = savedName;
+        }
+        checks.addEventListener('change', syncGuest);
         guestFields.append(nameLabel, nameInput);
-        fieldset.append(guestFields);
+        row.append(guestFields);
       }
-      members.append(fieldset);
+
+      table.append(row);
     });
+
+    if (party.members.length > 1) {
+      const foot = document.createElement('div');
+      foot.className = 'party-attendance__foot';
+      const spacer = document.createElement('span');
+      spacer.className = 'party-attendance__spacer';
+      const allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      allBtn.className = 'party-attendance__all';
+      const eventBoxes = () => [...table.querySelectorAll('.party-member__check input')];
+      const syncAllLabel = () => {
+        const boxes = eventBoxes();
+        const allOn = boxes.length > 0 && boxes.every((box) => box.checked);
+        allBtn.textContent = allOn ? 'Clear all' : 'Select all';
+        allBtn.setAttribute('aria-pressed', String(allOn));
+      };
+      allBtn.addEventListener('click', () => {
+        const boxes = eventBoxes();
+        const allOn = boxes.every((box) => box.checked);
+        boxes.forEach((box) => {
+          box.checked = !allOn;
+          box.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        form.dataset.dirty = '1';
+        syncAllLabel();
+      });
+      table.addEventListener('change', syncAllLabel);
+      syncAllLabel();
+      foot.append(spacer, allBtn);
+      table.append(foot);
+    }
+
+    members.append(table);
     if (party.wishes) byId('wishes').value = party.wishes;
     showStep('confirm');
     openReached('confirm', { animate });
@@ -423,11 +523,23 @@ export function initRsvp(lenis) {
     canvas.setAttribute('aria-hidden', 'true');
     document.body.append(canvas);
     const context = canvas.getContext('2d');
-    const colors = ['#1f4b3e', '#e8c5c9', '#d9e6e0', '#f6eaec', '#2a5c4c'];
+    const flowerSources = [
+      '/images/letter/rose.png?v=2',
+      '/images/letter/wildrose.png?v=2',
+      '/images/letter/bud.png?v=2',
+      '/images/letter/blossom.png?v=2',
+      '/images/letter/peony.png?v=2',
+      '/images/letter/leaf.png?v=2',
+    ];
+    const flowers = flowerSources.map((src) => {
+      const image = new Image();
+      image.src = src;
+      return image;
+    });
     const box = mark.getBoundingClientRect();
     const originX = box.left + box.width / 2;
     const originY = box.top + box.height / 2;
-    const total = 160;
+    const total = 96;
     const spawnFor = 1800;
     const duration = 5200;
     const pieces = [];
@@ -435,16 +547,17 @@ export function initRsvp(lenis) {
     const spawnPiece = () => {
       const angle = Math.random() * Math.PI * 2;
       const speed = 3.2 + Math.random() * 7.5;
+      const size = 18 + Math.random() * 26;
       return {
         x: originX + (Math.random() - 0.5) * 28,
         y: originY + (Math.random() - 0.5) * 12,
-        w: 5 + Math.random() * 5,
-        h: 7 + Math.random() * 7,
+        size,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 3.2,
-        spin: Math.random() * Math.PI,
-        spinV: -0.22 + Math.random() * 0.44,
-        color: colors[Math.floor(Math.random() * colors.length)],
+        spin: Math.random() * Math.PI * 2,
+        spinV: -0.12 + Math.random() * 0.24,
+        image: flowers[Math.floor(Math.random() * flowers.length)],
+        alpha: 0.82 + Math.random() * 0.18,
       };
     };
     const started = performance.now();
@@ -464,17 +577,23 @@ export function initRsvp(lenis) {
         piece.y += piece.vy;
         piece.vx *= 0.992;
         piece.spin += piece.spinV;
+        if (!piece.image.complete || !piece.image.naturalWidth) return;
         context.save();
         context.translate(piece.x, piece.y);
         context.rotate(piece.spin);
-        context.fillStyle = piece.color;
-        context.fillRect(-piece.w / 2, -piece.h / 2, piece.w, piece.h);
+        context.globalAlpha = piece.alpha;
+        context.drawImage(piece.image, -piece.size / 2, -piece.size / 2, piece.size, piece.size);
         context.restore();
       });
       if (elapsed < duration) requestAnimationFrame(draw);
       else canvas.remove();
     };
     requestAnimationFrame(draw);
+  }
+
+  function syncClearButton() {
+    if (!clearBtn) return;
+    clearBtn.hidden = !input.value;
   }
 
   function hideSuggestions() {
@@ -564,6 +683,7 @@ export function initRsvp(lenis) {
     form.reset();
     hideSuggestions();
     input.value = '';
+    syncClearButton();
     openReached('find');
     showStep('search');
     focus(input);
@@ -633,7 +753,16 @@ export function initRsvp(lenis) {
 
   input.addEventListener('input', () => {
     status.textContent = '';
+    syncClearButton();
     renderSuggestions();
+  });
+  clearBtn?.addEventListener('click', () => {
+    if (input.readOnly) return;
+    input.value = '';
+    syncClearButton();
+    hideSuggestions();
+    status.textContent = '';
+    focus(input);
   });
   input.addEventListener('keydown', (event) => {
     if (results.hidden) return;
@@ -664,7 +793,15 @@ export function initRsvp(lenis) {
       members: savedReply.party.members.map((member, index) => {
         const response = savedReply.responses[index];
         if (!response) return member;
-        return { ...member, attending: response.attending, name: response.name || member.name };
+        const ceremony = typeof response.ceremony === 'boolean' ? response.ceremony : response.attending;
+        const reception = typeof response.reception === 'boolean' ? response.reception : response.attending;
+        return {
+          ...member,
+          attending: ceremony === true || reception === true,
+          ceremony,
+          reception,
+          name: response.name || member.name,
+        };
       }),
     };
     selectParty(party);
@@ -672,29 +809,27 @@ export function initRsvp(lenis) {
   byId('rsvpRetry').addEventListener('click', loadStatus);
 
   function repliesFromForm() {
-    const values = new FormData(form);
     return selectedParty.members.map((member, index) => {
-      const attending = values.get(`attending-${index}`) === 'yes';
-      const response = { id: member.id, attending };
-      if (member.plusOne) response.name = String(values.get(`guest-name-${index}`) || '').trim();
+      const ceremony = Boolean(form.querySelector(`[name="ceremony-${index}"]`)?.checked);
+      const reception = Boolean(form.querySelector(`[name="reception-${index}"]`)?.checked);
+      const response = {
+        id: member.id,
+        ceremony,
+        reception,
+        attending: ceremony || reception,
+      };
+      if (member.plusOne) response.name = String(new FormData(form).get(`guest-name-${index}`) || '').trim();
       return response;
     });
   }
 
   byId('rsvpContinue').addEventListener('click', () => {
     if (!selectedParty) return;
-    const missing = selectedParty.members.findIndex((_, index) => !form.querySelector(`[name="attending-${index}"]:checked`));
-    if (missing >= 0) {
-      const field = form.querySelector(`[name="attending-${missing}"]`);
-      field?.reportValidity();
-      scrollToStep(field?.closest('.party-member') || field);
-      return;
-    }
     const responses = repliesFromForm();
     const unnamedGuest = responses.find((response, index) => selectedParty.members[index].plusOne && response.attending && response.name.length < 2);
     if (unnamedGuest) {
       const field = form.querySelector(`[name="guest-name-${responses.indexOf(unnamedGuest)}"]`);
-      field?.setCustomValidity('Add your guest’s name, or mark this plus one as unable to attend.');
+      field?.setCustomValidity('Add your guest’s name, or uncheck both events for this plus one.');
       field?.reportValidity();
       scrollToStep(field);
       return;
@@ -712,7 +847,7 @@ export function initRsvp(lenis) {
     const unnamedGuest = responses.find((response, index) => selectedParty.members[index].plusOne && response.attending && response.name.length < 2);
     if (unnamedGuest) {
       const field = form.querySelector(`[name="guest-name-${responses.indexOf(unnamedGuest)}"]`);
-      field?.setCustomValidity('Add your guest’s name, or mark this plus one as unable to attend.');
+      field?.setCustomValidity('Add your guest’s name, or uncheck both events for this plus one.');
       field?.reportValidity();
       scrollToStep(field);
       return;
@@ -735,7 +870,7 @@ export function initRsvp(lenis) {
       if (!data.saved) throw new Error('Missing save confirmation');
       selectedParty = rememberSavedParty(selectedParty, responses, body.wishes);
       savedReply = { party: selectedParty, responses, wishes: body.wishes };
-      const anyoneAttending = responses.some((response) => response.attending);
+      const anyoneAttending = responses.some((response) => isAttendingAny(response));
       const confirmation = confirmationMessage(anyoneAttending);
       byId('rsvpSuccessMessage').textContent = confirmation.title;
       byId('rsvpSuccessDetail').textContent = confirmation.detail;

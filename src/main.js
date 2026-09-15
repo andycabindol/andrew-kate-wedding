@@ -28,9 +28,140 @@ function mountSite() {
 
 let updateNav = () => {};
 
+function randBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function shuffleList(list) {
+  const items = [...list];
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+
+function scrambleBloomFlourish(host) {
+  const items = [...host.querySelectorAll('.bloom-flourish__item')];
+  if (!items.length) return;
+
+  // Keep blooms parked on corners only, with outward offsets (never into the center).
+  const slots = shuffleList([
+    {
+      left: () => `${randBetween(-28, -10)}px`,
+      top: () => `${randBetween(-22, -8)}px`,
+      right: 'auto',
+      bottom: 'auto',
+    },
+    {
+      left: 'auto',
+      right: () => `${randBetween(-26, -8)}px`,
+      top: () => `${randBetween(-22, -8)}px`,
+      bottom: 'auto',
+    },
+    {
+      left: () => `${randBetween(-28, -10)}px`,
+      top: 'auto',
+      right: 'auto',
+      bottom: () => `${randBetween(-26, -8)}px`,
+    },
+    {
+      left: 'auto',
+      right: () => `${randBetween(-26, -8)}px`,
+      top: 'auto',
+      bottom: () => `${randBetween(-26, -8)}px`,
+    },
+  ]).slice(0, items.length);
+
+  const sized = shuffleList(items);
+  sized.forEach((el, index) => {
+    const slot = slots[index];
+    const isVine = el.classList.contains('bloom-flourish__item--vine');
+    const size = isVine
+      ? randBetween(44, 60)
+      : index === 0
+        ? randBetween(28, 38)
+        : randBetween(18, 28);
+
+    el.style.left = typeof slot.left === 'function' ? slot.left() : slot.left;
+    el.style.right = typeof slot.right === 'function' ? slot.right() : slot.right;
+    el.style.top = typeof slot.top === 'function' ? slot.top() : slot.top;
+    el.style.bottom = typeof slot.bottom === 'function' ? slot.bottom() : slot.bottom;
+    el.style.setProperty('--bloom-size', `${size.toFixed(1)}px`);
+    el.style.setProperty('--bloom-rot', `${randBetween(-14, 14).toFixed(1)}deg`);
+  });
+}
+
+function attachBloomFlourish(host) {
+  if (!host || host.querySelector('.bloom-flourish')) return;
+  host.classList.add('has-bloom-flourish');
+
+  const blooms = document.createElement('span');
+  blooms.className = 'bloom-flourish';
+  blooms.setAttribute('aria-hidden', 'true');
+
+  [
+    ['bloom-flourish__item bloom-flourish__item--a', '/images/letter/rose.png?v=2'],
+    ['bloom-flourish__item bloom-flourish__item--b', '/images/letter/blossom.png?v=2'],
+    ['bloom-flourish__item bloom-flourish__item--vine', '/images/letter/vine-a.png?v=2'],
+  ].forEach(([className, src]) => {
+    const img = document.createElement('img');
+    img.className = className;
+    img.src = src;
+    img.alt = '';
+    img.width = 256;
+    img.height = 256;
+    blooms.append(img);
+  });
+
+  host.append(blooms);
+  scrambleBloomFlourish(host);
+
+  const restyle = () => scrambleBloomFlourish(host);
+  host.addEventListener('pointerenter', restyle);
+  host.addEventListener('focusin', restyle);
+}
+
+function enhanceRsvpBlooms(root = document) {
+  root.querySelectorAll('.nav__rsvp-btn, a.btn[href="/rsvp"], #rsvpWelcomeStart').forEach(attachBloomFlourish);
+}
+
+function initHeroArc() {
+  const ring = document.querySelector('[data-hero-arc-ring]');
+  if (!ring || ring.childElementCount) return;
+
+  const assets = [
+    '/images/letter/rose.png?v=2',
+    '/images/letter/blossom.png?v=2',
+    '/images/letter/peony.png?v=2',
+    '/images/letter/wildrose.png?v=2',
+    '/images/letter/bud.png?v=2',
+    '/images/letter/leaf.png?v=2',
+  ];
+  const sizes = [70, 46, 58, 38, 54, 42, 64, 48, 56, 36];
+  const count = 52;
+  const frag = document.createDocumentFragment();
+
+  for (let i = 0; i < count; i += 1) {
+    const img = document.createElement('img');
+    img.className = 'hero-arc__bloom';
+    img.src = assets[i % assets.length];
+    img.alt = '';
+    img.width = 256;
+    img.height = 256;
+    img.style.setProperty('--i', String((360 / count) * i));
+    img.style.setProperty('--size', `${sizes[i % sizes.length]}px`);
+    img.style.setProperty('--tilt', `${((i % 7) - 3) * 3}deg`);
+    frag.append(img);
+  }
+
+  ring.append(frag);
+}
+
 function bindNav(nav) {
   if (!nav || nav.dataset.bound) return;
   nav.dataset.bound = 'true';
+  enhanceRsvpBlooms(nav);
   const navToggle = document.getElementById('navToggle');
   const navMobile = document.getElementById('navMobile');
   if (!navToggle || !navMobile) return;
@@ -164,6 +295,7 @@ updateNav = function updateNav() {
 lenis.on('scroll', updateNav);
 updateNav();
 bindNav(nav);
+enhanceRsvpBlooms(document);
 
 function injectDevNavLinks() {
   if (!import.meta.env.DEV) return;
@@ -225,157 +357,41 @@ initCarousel('receptionCarousel');
 
 function initLetterFlowers(scroll) {
   const stage = document.querySelector('.letter-stage');
-  const flowers = document.querySelector('.letter-flowers');
-  const card = document.querySelector('.letter-stack');
-  if (!stage || !flowers || !card || flowers.dataset.bound === 'true') return;
-  flowers.dataset.bound = 'true';
+  if (!stage || stage.dataset.bound === 'true') return;
+  stage.dataset.bound = 'true';
 
-  const petals = [...flowers.querySelectorAll('.letter-flower, .letter-leaf')].map((petal) => {
+  const petals = [...stage.querySelectorAll('.letter-flower, .letter-leaf, .letter-vine')].map((petal) => {
     const styles = getComputedStyle(petal);
     const depth = Number.parseFloat(styles.getPropertyValue('--parallax-depth')) || 0.35;
     const drift = Number.parseFloat(styles.getPropertyValue('--parallax-drift')) || 1;
-    return {
-      el: petal,
-      depth,
-      drift,
-      revealX: 0,
-      revealY: 0,
-      revealScale: 1,
-      revealOpacity: 0,
-    };
+    return { el: petal, depth, drift };
   });
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let revealing = false;
-
-  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-
-  const paintPetal = (petal) => {
-    const { el, revealX, revealY, revealScale, revealOpacity } = petal;
-    el.style.setProperty('--reveal-x', `${revealX.toFixed(2)}px`);
-    el.style.setProperty('--reveal-y', `${revealY.toFixed(2)}px`);
-    el.style.setProperty('--reveal-scale', revealScale.toFixed(4));
-    el.style.opacity = String(revealOpacity);
-  };
 
   const updateParallax = () => {
-    if (!flowers.classList.contains('is-parallaxing')) return;
     const rect = stage.getBoundingClientRect();
     const view = window.innerHeight || 1;
     const progress = (view * 0.55 - (rect.top + rect.height * 0.5)) / view;
     const clamped = Math.max(-1.15, Math.min(1.15, progress));
 
-    petals.forEach((petal) => {
-      const { el, depth, drift } = petal;
+    petals.forEach(({ el, depth, drift }) => {
       const y = clamped * depth * 140;
       const x = clamped * depth * 48 * drift;
       const scale = 1 + clamped * depth * 0.04;
       el.style.setProperty('--parallax-x', `${x.toFixed(2)}px`);
       el.style.setProperty('--parallax-y', `${y.toFixed(2)}px`);
       el.style.setProperty('--parallax-scale', scale.toFixed(4));
-      // Never set style.transform — CSS composes parallax + reveal.
-      paintPetal(petal);
     });
   };
 
-  const reveal = () => {
-    if (flowers.classList.contains('is-revealed') || revealing) return;
-    revealing = true;
-    flowers.classList.add('is-revealed');
-
-    if (prefersReducedMotion) {
-      flowers.classList.add('is-static', 'is-parallaxing');
-      petals.forEach((petal) => {
-        petal.revealX = 0;
-        petal.revealY = 0;
-        petal.revealScale = 1;
-        petal.revealOpacity = 1;
-        paintPetal(petal);
-      });
-      revealing = false;
-      updateParallax();
-      return;
-    }
-
-    const origin = card.getBoundingClientRect();
-    const ox = origin.left + origin.width / 2;
-    const oy = origin.top + origin.height / 2;
-    const duration = 900;
-    const stagger = 28;
-    const start = performance.now();
-
-    petals.forEach((petal) => {
-      const rect = petal.el.getBoundingClientRect();
-      const px = rect.left + rect.width / 2;
-      const py = rect.top + rect.height / 2;
-      petal.fromX = (ox - px) * 0.28;
-      petal.fromY = (oy - py) * 0.28;
-      petal.revealX = petal.fromX;
-      petal.revealY = petal.fromY;
-      petal.revealScale = 0.55;
-      petal.revealOpacity = 0;
-      paintPetal(petal);
-    });
-
-    // Parallax runs during reveal; CSS composes both layers.
-    flowers.classList.add('is-parallaxing');
-    updateParallax();
-
-    const tick = (now) => {
-      let allDone = true;
-
-      petals.forEach((petal, index) => {
-        const local = (now - start - index * stagger) / duration;
-        if (local < 1) allDone = false;
-        const t = easeOut(Math.max(0, Math.min(1, local)));
-        petal.revealX = petal.fromX * (1 - t);
-        petal.revealY = petal.fromY * (1 - t);
-        petal.revealScale = 0.55 + 0.45 * t;
-        petal.revealOpacity = t;
-      });
-
-      updateParallax();
-
-      if (!allDone) {
-        requestAnimationFrame(tick);
-        return;
-      }
-
-      petals.forEach((petal) => {
-        petal.revealX = 0;
-        petal.revealY = 0;
-        petal.revealScale = 1;
-        petal.revealOpacity = 1;
-        paintPetal(petal);
-      });
-      revealing = false;
-      updateParallax();
-    };
-
-    requestAnimationFrame(tick);
-  };
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        reveal();
-        observer.disconnect();
-      });
-    },
-    { threshold: 0.3, rootMargin: '0px 0px -6% 0px' },
-  );
-  observer.observe(stage);
-
-  if (prefersReducedMotion) {
-    reveal();
-    return;
-  }
+  if (prefersReducedMotion) return;
 
   scroll.on('scroll', updateParallax);
   updateParallax();
 }
 
 initLetterFlowers(lenis);
+initHeroArc();
 
 // FAQ accordion
 const accordion = document.getElementById('faqAccordion');

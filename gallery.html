@@ -57,8 +57,8 @@
               </svg>
             </button>
             <div class="nav__dropdown" id="venueMenu">
-              <a href="/wedding">Wedding</a>
-              <a href="/reception">Reception</a>
+              <a href="/wedding"><img src="/images/church/church-1.jpg" alt="" width="40" height="40" /><span>Wedding</span></a>
+              <a href="/reception"><img src="/images/reception/house.jpg" alt="" width="40" height="40" /><span>Reception</span></a>
             </div>
           </div>
           <a href="/#schedule">Schedule</a>
@@ -82,8 +82,8 @@
             </svg>
           </button>
           <div class="nav__dropdown" id="venueMenuMobile">
-            <a href="/wedding">Wedding</a>
-            <a href="/reception">Reception</a>
+            <a href="/wedding"><img src="/images/church/church-1.jpg" alt="" width="40" height="40" /><span>Wedding</span></a>
+            <a href="/reception"><img src="/images/reception/house.jpg" alt="" width="40" height="40" /><span>Reception</span></a>
           </div>
         </div>
         <a href="/#schedule">Schedule</a>
@@ -96,7 +96,14 @@
     <main>
       <section class="section gallery-page">
         <div class="container">
-          <h1 class="section-heading section-heading--center">Gallery</h1>
+          <div class="page-title">
+            <div class="page-title__copy">
+              <h1 class="section-heading section-heading--center">Gallery</h1>
+            </div>
+            <span class="page-title__bloom page-title__bloom--right" aria-hidden="true">
+              <img src="/images/letter/blossom.png?v=2" alt="" width="256" height="256" />
+            </span>
+          </div>
           <p class="body-text body-text--center gallery-page__intro">
             Photos coming soon. Placeholder frames for now.
           </p>
@@ -120,7 +127,8 @@
     </main>
 
     <footer class="footer">
-      <div class="container footer__inner">
+      <div class="container">
+        <div class="footer__inner">
         <a href="/" class="footer__logo">Katie &amp; Andrew</a>
         <nav class="footer__links">
           <a href="/">Home</a>
@@ -130,6 +138,8 @@
           <a href="/party">Wedding Party</a>
           <a href="/rsvp">RSVP</a>
         </nav>
+        </div>
+        <p class="footer__credit">Website by <a href="https://andycabindol.com" target="_blank" rel="noopener noreferrer">Andy Cabindol</a></p>
       </div>
     </footer>
     <script type="module" src="/src/main.js"></script>

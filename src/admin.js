@@ -37,7 +37,28 @@ async function request(body) {
 }
 
 function guestCount(party) {
-  return party.members.filter((member) => member.attending === true).length;
+  return party.members.filter((member) => member.attending === true || member.ceremony === true || member.reception === true).length;
+}
+
+function memberStatus(member) {
+  if (member.ceremony === true || member.reception === true || member.attending === true) return 'yes';
+  if (
+    (member.ceremony === false && member.reception === false)
+    || (member.attending === false && member.ceremony == null && member.reception == null)
+  ) return 'no';
+  return '';
+}
+
+function attendanceSummary(member) {
+  const ceremony = member.ceremony === true;
+  const reception = member.reception === true;
+  if (ceremony && reception) return 'Both';
+  if (ceremony) return 'Ceremony';
+  if (reception) return 'Reception';
+  if (member.ceremony === false && member.reception === false) return 'Neither';
+  if (member.attending === true) return 'Attending';
+  if (member.attending === false) return 'Unable';
+  return 'Waiting';
 }
 
 function showLogin(message = '') {
@@ -95,8 +116,8 @@ function render() {
     head.className = 'admin__card-head';
     const title = document.createElement('h2');
     title.textContent = party.label;
-    const yes = party.members.filter((member) => member.attending === true).length;
-    const no = party.members.filter((member) => member.attending === false).length;
+    const yes = party.members.filter((member) => memberStatus(member) === 'yes').length;
+    const no = party.members.filter((member) => memberStatus(member) === 'no').length;
     const badge = document.createElement('span');
     badge.className = `admin__badge${party.replied ? (yes ? ' is-yes' : ' is-no') : ''}`;
     badge.textContent = party.replied ? `${yes} yes${no ? ` · ${no} no` : ''}` : 'Waiting';
@@ -105,22 +126,37 @@ function render() {
     people.className = 'admin__people';
     for (const member of party.members) {
       const item = document.createElement('div');
-      item.className = `admin__person${member.attending === true ? ' is-yes' : member.attending === false ? ' is-no' : ' is-waiting'}`;
+      const status = memberStatus(member);
+      item.className = `admin__person${status === 'yes' ? ' is-yes' : status === 'no' ? ' is-no' : ' is-waiting'}`;
       const name = document.createElement('p');
       const shown = member.plusOne && member.name && !/^plus one/i.test(member.name) ? member.name : member.name;
       name.textContent = `${shown}${member.plusOne ? ' · plus one' : ''}`;
-      const attendance = document.createElement('select');
-      attendance.className = 'admin__attendance';
-      attendance.setAttribute('aria-label', `Attendance for ${shown}`);
-      for (const [value, label] of [['', 'No reply yet'], ['yes', 'Attending'], ['no', 'Unable to attend']]) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = label;
-        attendance.append(option);
+      const summary = document.createElement('span');
+      summary.className = 'admin__person-summary';
+      summary.textContent = attendanceSummary(member);
+      const controls = document.createElement('div');
+      controls.className = 'admin__person-events';
+      for (const [event, label] of [['ceremony', 'Ceremony'], ['reception', 'Reception']]) {
+        const wrap = document.createElement('label');
+        wrap.className = 'admin__event';
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        const attendance = document.createElement('select');
+        attendance.className = 'admin__attendance';
+        attendance.setAttribute('aria-label', `${label} for ${shown}`);
+        for (const [value, text] of [['', 'No reply yet'], ['yes', 'Attending'], ['no', 'Unable to attend']]) {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = text;
+          attendance.append(option);
+        }
+        const value = member[event] === true ? 'yes' : member[event] === false ? 'no' : member.attending === true ? 'yes' : member.attending === false ? 'no' : '';
+        attendance.value = value;
+        attendance.addEventListener('change', () => saveAttendance(party, member, event, attendance));
+        wrap.append(caption, attendance);
+        controls.append(wrap);
       }
-      attendance.value = member.attending === true ? 'yes' : member.attending === false ? 'no' : '';
-      attendance.addEventListener('change', () => saveAttendance(party, member, attendance));
-      item.append(name, attendance);
+      item.append(name, summary, controls);
       people.append(item);
     }
     card.append(head, people);
@@ -286,16 +322,24 @@ function openEditor(party) {
   document.getElementById('partyLabel').focus();
 }
 
-async function saveAttendance(party, member, select) {
+async function saveAttendance(party, member, event, select) {
   const attending = select.value === 'yes' ? true : select.value === 'no' ? false : null;
   select.disabled = true;
   try {
-    await request({ action: 'admin-attendance', token: token(), id: party.id, memberId: member.id, attending });
+    await request({
+      action: 'admin-attendance',
+      token: token(),
+      id: party.id,
+      memberId: member.id,
+      event,
+      attending,
+    });
     await refreshParties();
   } catch (error) {
     if (error.status === 401) showLogin('Please sign in again.');
     else document.getElementById('adminStatus').textContent = error.message;
-    select.value = member.attending === true ? 'yes' : member.attending === false ? 'no' : '';
+    const current = member[event] === true ? 'yes' : member[event] === false ? 'no' : member.attending === true ? 'yes' : member.attending === false ? 'no' : '';
+    select.value = current;
   } finally {
     select.disabled = false;
   }

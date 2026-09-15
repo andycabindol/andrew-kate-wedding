@@ -3,6 +3,18 @@ export const weddingConfig = {
   contactEmail: 'AndrewKatieTorres@gmail.com',
   rsvpEndpoint: 'https://uyhzqldiukfmugasiapi.supabase.co/functions/v1/wedding-rsvp',
   dressInspirationUrl: 'https://www.pinterest.com/',
+  events: {
+    ceremony: {
+      label: 'Ceremony',
+      detail: 'May 29 · 1:30 PM',
+      place: 'St. Thomas Aquinas',
+    },
+    reception: {
+      label: 'Reception',
+      detail: 'May 29 · 3:30 PM',
+      place: 'Raspberry Hill',
+    },
+  },
   registries: [
     { name: 'View full registry', url: 'https://registry.theknot.com/andrew-torres-katie-ferguson-may-2027-ia/78612430' },
   ],
@@ -23,9 +35,9 @@ export const weddingConfig = {
           { name: 'Lily Ferguson', role: 'Maid of Honor' },
           { name: 'Gabby Ferguson', role: 'Bridesmaid' },
           { name: 'Molly Ferguson', role: 'Bridesmaid' },
+          { name: 'Emily Village', role: 'Bridesmaid' },
           { name: 'Angelica Torres', role: 'Bridesmaid' },
           { name: 'Lexi Cabindol', role: 'Bridesmaid' },
-          { name: 'Emily Village', role: 'Bridesmaid' },
         ],
       },
     ],
@@ -39,8 +51,8 @@ export const weddingConfig = {
       {
         title: 'Groomsmen',
         people: [
-          { name: 'Andy Cabindol', role: 'Best Man' },
           { name: 'Sam Feldmann', role: 'Best Man' },
+          { name: 'Andy Cabindol', role: 'Best Man' },
           { name: 'Eli Norris', role: 'Groomsman' },
           { name: 'Keagan Morrisroe', role: 'Groomsman' },
           { name: 'Michael Meis', role: 'Groomsman' },

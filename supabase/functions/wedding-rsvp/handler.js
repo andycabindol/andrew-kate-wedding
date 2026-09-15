@@ -139,6 +139,27 @@ export function publicInvitation(party) {
   };
 }
 
+export function normalizeAttendance(answer) {
+  if (!answer || typeof answer !== 'object') return null;
+  const hasCeremony = typeof answer.ceremony === 'boolean';
+  const hasReception = typeof answer.reception === 'boolean';
+  if (hasCeremony && hasReception) {
+    return {
+      ceremony: answer.ceremony,
+      reception: answer.reception,
+      attending: answer.ceremony || answer.reception,
+    };
+  }
+  if (typeof answer.attending === 'boolean') {
+    return {
+      ceremony: answer.attending,
+      reception: answer.attending,
+      attending: answer.attending,
+    };
+  }
+  return null;
+}
+
 export function applyRsvp(party, reply) {
   if (!reply) return { ...party, replied: false, wishes: party.wishes || '' };
   const responses = Array.isArray(reply.responses) ? reply.responses : [];
@@ -149,11 +170,14 @@ export function applyRsvp(party, reply) {
     updatedAt: reply.updated_at || '',
     members: (party.members || []).map((member) => {
       const answer = responses.find((item) => item?.id === member.id);
-      if (!answer || typeof answer.attending !== 'boolean') return member;
-      const named = typeof answer.name === 'string' ? answer.name.trim() : '';
+      const attendance = normalizeAttendance(answer);
+      if (!attendance) return member;
+      const named = typeof answer?.name === 'string' ? answer.name.trim() : '';
       return {
         ...member,
-        attending: answer.attending,
+        attending: attendance.attending,
+        ceremony: attendance.ceremony,
+        reception: attendance.reception,
         ...(member.plusOne && named ? { name: named } : {}),
       };
     }),
@@ -249,19 +273,49 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
         if (body.action === 'admin-attendance') {
           const id = typeof body.id === 'string' ? body.id.trim() : '';
           const memberId = typeof body.memberId === 'string' ? body.memberId.trim() : '';
-          const attending = body.attending === true || body.attending === false ? body.attending : null;
           const party = await database.getParty(id);
           const member = party?.members.find((item) => item.id === memberId);
           if (!party || !member) return reply({ error: 'Choose a guest to update.' }, 400);
           const existing = await database.getReply(id);
+          const previous = (Array.isArray(existing?.responses) ? existing.responses : []).find((item) => item?.id === memberId);
+          const current = normalizeAttendance(previous) || {
+            ceremony: typeof member.ceremony === 'boolean' ? member.ceremony : false,
+            reception: typeof member.reception === 'boolean' ? member.reception : false,
+            attending: false,
+          };
+          let next = { ...current };
+          if (body.event === 'ceremony' || body.event === 'reception') {
+            if (body.attending !== true && body.attending !== false && body.attending !== null) {
+              return reply({ error: 'Choose attending or unable to attend.' }, 400);
+            }
+            if (body.attending === null) {
+              // Clearing one event clears the whole reply for that guest.
+              next = null;
+            } else {
+              next[body.event] = body.attending;
+              next.attending = next.ceremony || next.reception;
+            }
+          } else if (body.attending === true || body.attending === false) {
+            next = { ceremony: body.attending, reception: body.attending, attending: body.attending };
+          } else if (body.attending === null) {
+            next = null;
+          } else {
+            return reply({ error: 'Choose attending or unable to attend.' }, 400);
+          }
           const kept = (Array.isArray(existing?.responses) ? existing.responses : [])
             .filter((item) => item?.id && item.id !== memberId && party.members.some((person) => item.id === person.id));
-          if (attending !== null) {
-            const previous = (existing?.responses || []).find((item) => item?.id === memberId);
+          if (next) {
             const named = typeof previous?.name === 'string' && previous.name.trim() && !/^plus one/i.test(previous.name)
               ? previous.name.trim()
               : member.name;
-            kept.push({ id: member.id, name: named, attending, plusOne: Boolean(member.plusOne) });
+            kept.push({
+              id: member.id,
+              name: named,
+              ceremony: next.ceremony,
+              reception: next.reception,
+              attending: next.attending,
+              plusOne: Boolean(member.plusOne),
+            });
           }
           const wishes = typeof existing?.wishes === 'string' ? existing.wishes : '';
           if (!kept.length && !wishes) await database.deleteReply(id);
@@ -345,18 +399,29 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
       const responses = body.responses;
       if (!Array.isArray(responses) || responses.length !== party.members.length
         || new Set(responses.map((r) => r?.id)).size !== party.members.length
-        || responses.some((r) => !r || typeof r.attending !== 'boolean' || !party.members.some((m) => m.id === r.id))) {
-        return reply({ error: 'Please choose attending or unable to attend for every invited guest.' }, 400);
+        || responses.some((r) => !r
+          || typeof r.ceremony !== 'boolean'
+          || typeof r.reception !== 'boolean'
+          || !party.members.some((m) => m.id === r.id))) {
+        return reply({ error: 'Please choose attending or unable to attend for the ceremony and reception for every invited guest.' }, 400);
       }
       if (typeof body.wishes !== 'string' || body.wishes.length > 2000) return reply({ error: 'Please keep your note to 2,000 characters or fewer.' }, 400);
       const savedResponses = [];
       for (const member of party.members) {
         const answer = responses.find((r) => r.id === member.id);
+        const attendance = normalizeAttendance(answer);
         const named = typeof answer.name === 'string' ? answer.name.trim() : '';
-        if (member.plusOne && answer.attending && (named.length < 2 || named.length > 80)) {
-          return reply({ error: 'Please add your guest’s name, or mark that plus one as unable to attend.' }, 400);
+        if (member.plusOne && attendance.attending && (named.length < 2 || named.length > 80)) {
+          return reply({ error: 'Please add your guest’s name, or mark that plus one as unable to attend both events.' }, 400);
         }
-        savedResponses.push({ id: member.id, name: member.plusOne && named ? named : member.name, attending: answer.attending, plusOne: Boolean(member.plusOne) });
+        savedResponses.push({
+          id: member.id,
+          name: member.plusOne && named ? named : member.name,
+          ceremony: attendance.ceremony,
+          reception: attendance.reception,
+          attending: attendance.attending,
+          plusOne: Boolean(member.plusOne),
+        });
       }
       await database.save({
         invitation_id: party.id, responses: savedResponses,
