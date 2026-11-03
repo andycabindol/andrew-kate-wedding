@@ -290,6 +290,71 @@ if (import.meta.env.PROD && location.pathname.replace(/\/$/, '') === '/gallery')
   location.replace('/');
 }
 
+function initGalleryLightbox() {
+  const grid = document.getElementById('galleryGrid');
+  const dialog = document.getElementById('galleryLightbox');
+  const image = document.getElementById('galleryLightboxImage');
+  if (!grid || !dialog || !image) return;
+
+  const items = [...grid.querySelectorAll('.gallery-item')];
+  if (!items.length) return;
+
+  const photos = items.map((item) => {
+    const img = item.querySelector('img');
+    return {
+      src: img?.currentSrc || img?.src || '',
+      alt: img?.alt || 'Katie and Andrew',
+    };
+  });
+
+  let index = 0;
+
+  function show(nextIndex) {
+    index = (nextIndex + photos.length) % photos.length;
+    const photo = photos[index];
+    image.src = photo.src;
+    image.alt = photo.alt;
+  }
+
+  function open(nextIndex) {
+    show(nextIndex);
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function close() {
+    if (dialog.open) dialog.close();
+  }
+
+  grid.addEventListener('click', (event) => {
+    const item = event.target.closest('.gallery-item');
+    if (!item || !grid.contains(item)) return;
+    const nextIndex = Number(item.dataset.galleryIndex);
+    if (Number.isNaN(nextIndex)) return;
+    open(nextIndex);
+  });
+
+  dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', close);
+  dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(index - 1));
+  dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => show(index + 1));
+
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) close();
+  });
+
+  dialog.addEventListener('keydown', (event) => {
+    if (!dialog.open) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      show(index + 1);
+    }
+  });
+}
+
+initGalleryLightbox();
+
 // Carousels
 function initCarousel(id) {
   const carousel = document.getElementById(id);
