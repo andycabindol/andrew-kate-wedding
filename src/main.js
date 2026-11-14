@@ -220,10 +220,14 @@ function updateHeroParallax() {
 
   const heroHeight = hero.offsetHeight;
   const progress = Math.min(Math.max(lenis.scroll / heroHeight, 0), 1);
-  const y = HERO_PARALLAX_START - progress * HERO_PARALLAX_TRAVEL;
+  const mobile = window.matchMedia('(max-width: 809px)').matches;
+  const start = mobile ? 0 : HERO_PARALLAX_START;
+  const travel = mobile ? 48 : HERO_PARALLAX_TRAVEL;
+  const scale = mobile ? 1.04 : 1.08;
+  const y = start - progress * travel;
 
   // Keep scale locked to the CSS resting size so scroll only moves, never zooms.
-  heroImage.style.transform = `translate3d(0, ${y}px, 0) scale(1.08)`;
+  heroImage.style.transform = `translate3d(0, ${y}px, 0) scale(${scale})`;
 }
 
 updateNav = function updateNav() {

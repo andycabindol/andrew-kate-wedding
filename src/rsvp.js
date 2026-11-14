@@ -17,12 +17,44 @@ export function initRsvp(lenis) {
   let guestList = [];
   let activeSuggestion = -1;
   let busy = false;
+  let applyingHistory = false;
   const pageQuery = new URLSearchParams(location.search);
   const inviteMode = Boolean(inviteToken());
+  // Open RSVP enters the same immersive experience after a name match.
+  let experienceActive = inviteMode;
 
   function inviteToken() {
     const value = (pageQuery.get('invite') || '').trim();
     return /^iv1\.[A-Za-z0-9_-]{20,200}$/.test(value) ? value : '';
+  }
+
+  function inExperience() {
+    return inviteMode || experienceActive;
+  }
+
+  function rsvpHistoryState(step) {
+    return { ...(history.state || {}), rsvp: step };
+  }
+
+  function syncRsvpHistory(step, mode = 'push') {
+    if (applyingHistory || mode === 'none') return;
+    const current = history.state?.rsvp;
+    if (mode === 'replace' || current == null) {
+      history.replaceState(rsvpHistoryState(step), '', location.href);
+      return;
+    }
+    if (current === step) return;
+    history.pushState(rsvpHistoryState(step), '', location.href);
+  }
+
+  // Keep an edit step under success so browser Back opens the attendance UI.
+  function enterSuccessHistory() {
+    if (applyingHistory) return;
+    if (history.state?.rsvp === 'success') return;
+    if (history.state?.rsvp !== 'confirm' && history.state?.rsvp !== 'note') {
+      history.replaceState(rsvpHistoryState('confirm'), '', location.href);
+    }
+    history.pushState(rsvpHistoryState('success'), '', location.href);
   }
 
   function showStep(step) {
@@ -37,7 +69,7 @@ export function initRsvp(lenis) {
     if (back && screen !== 'search') back.hidden = true;
     const card = byId('rsvpCard');
     if (card) card.classList.toggle('is-success', screen === 'success');
-    if (inviteMode) {
+    if (inExperience()) {
       document.documentElement.classList.toggle('is-invite-success', screen === 'success');
       document.getElementById('rsvp')?.classList.toggle('rsvp--invite-success', screen === 'success');
       if (screen === 'success') {
@@ -111,7 +143,7 @@ export function initRsvp(lenis) {
   let confirmStage = 'confirm';
 
   function syncInviteStage(stage) {
-    if (!inviteMode) return;
+    if (!inExperience()) return;
     document.documentElement.classList.toggle('is-invite-welcome', stage === 'find');
     document.documentElement.classList.toggle('is-invite-confirm', stage === 'confirm' || stage === 'already');
     document.getElementById('rsvp')?.classList.toggle('rsvp--invite-confirm', stage === 'confirm' || stage === 'already');
@@ -156,7 +188,7 @@ export function initRsvp(lenis) {
     }
     byId('rsvpCard')?.classList.toggle('is-stepped', here > 0);
     if (here !== 0) hideSuggestions();
-    slideTo(here, { animate: inviteMode && here === 1 ? true : animate });
+    slideTo(here, { animate: inExperience() && here === 1 ? true : animate });
     if (!scroll) return;
     const targets = {
       find: byId('rsvpFindBlock'),
@@ -348,11 +380,11 @@ export function initRsvp(lenis) {
   }
 
   function openInvitation(party, { animate = true } = {}) {
-    if (inviteMode && party.replied) {
+    if (inExperience() && party.replied) {
       renderSuccess(party, responsesFromParty(party), party.wishes || '', { celebrate: false, moveFocus: false });
       return;
     }
-    if (inviteMode || !party.replied) selectParty(party, { animate });
+    if (inExperience() || !party.replied) selectParty(party, { animate });
     else showAlready(party);
   }
 
@@ -361,6 +393,10 @@ export function initRsvp(lenis) {
   }
 
   function chooseParty(party, mode) {
+    if (!inviteMode) {
+      startOpenExperience(party);
+      return;
+    }
     if (mode === 'edit') selectParty(party);
     else openInvitation(party);
     // Invite links already return a submit token — don't burn the IP rate
@@ -385,6 +421,61 @@ export function initRsvp(lenis) {
       throw error;
     });
     if (selectedParty?.id === party.id) selectedParty.opening = opening;
+  }
+
+  function startOpenExperience(party) {
+    const opening = openParty(party).then((opened) => {
+      const withToken = { ...opened, token: opened.token, opening };
+      if (invitedParty?.id === party.id) invitedParty = withToken;
+      if (selectedParty?.id === party.id) {
+        selectedParty.token = opened.token;
+        selectedParty.opening = opening;
+      }
+      return withToken;
+    }).catch((error) => {
+      if (invitedParty?.id === party.id || selectedParty?.id === party.id) {
+        status.textContent = errorMessage(error);
+      }
+      throw error;
+    });
+
+    // Already replied: match invite links and open on the success screen.
+    if (party.replied) {
+      busy = true;
+      status.textContent = 'Opening your RSVP…';
+      opening.then((opened) => {
+        busy = false;
+        status.textContent = '';
+        experienceActive = true;
+        invitedParty = opened;
+        applyExperienceChrome();
+        renderSuccess(opened, responsesFromParty(opened), opened.wishes || '', {
+          celebrate: false,
+          moveFocus: false,
+        });
+      }).catch(() => {
+        busy = false;
+      });
+      return;
+    }
+
+    experienceActive = true;
+    invitedParty = { ...party, opening };
+    applyExperienceChrome();
+    document.documentElement.classList.add('is-invite-welcome');
+
+    const greeting = byId('rsvpWelcomeGreeting');
+    if (greeting) greeting.textContent = party.label;
+    const welcomeStart = byId('rsvpWelcomeStart');
+    if (welcomeStart) {
+      welcomeStart.textContent = 'RSVP';
+      welcomeStart.disabled = false;
+    }
+    byId('rsvpWelcome').hidden = false;
+    showStep('search');
+    openReached('find', { scroll: false, animate: false });
+    syncRsvpHistory('find', 'push');
+    playInviteReveal();
   }
 
   async function openParty(party) {
@@ -423,14 +514,50 @@ export function initRsvp(lenis) {
     });
   }
 
-  function applyInviteChrome(party) {
+  function applyExperienceChrome() {
+    experienceActive = true;
     document.documentElement.classList.add('is-invite');
     document.getElementById('rsvp')?.classList.add('rsvp--invite');
-    invitedParty = party;
     byId('rsvpHelp').hidden = true;
     searchForm.hidden = true;
     const intro = byId('rsvpCardIntro');
     if (intro) intro.hidden = true;
+    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
+    if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
+  }
+
+  function clearExperienceChrome() {
+    if (inviteMode) return;
+    experienceActive = false;
+    invitedParty = null;
+    document.documentElement.classList.remove(
+      'is-invite',
+      'is-invite-welcome',
+      'is-invite-confirm',
+      'is-invite-success',
+    );
+    document.getElementById('rsvp')?.classList.remove(
+      'rsvp--invite',
+      'rsvp--invite-confirm',
+      'rsvp--invite-success',
+      'rsvp--invite-leaving',
+    );
+    byId('rsvpHelp').hidden = false;
+    searchForm.hidden = false;
+    const intro = byId('rsvpCardIntro');
+    if (intro) intro.hidden = false;
+    const welcome = byId('rsvpWelcome');
+    if (welcome) {
+      welcome.hidden = true;
+      welcome.classList.remove('is-revealed', 'is-leaving');
+    }
+    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
+    if (welcomeLabel) welcomeLabel.textContent = 'Find your invitation';
+  }
+
+  function applyInviteChrome(party) {
+    invitedParty = party;
+    applyExperienceChrome();
 
     // After RSVPing, the invite link reopens on the success screen.
     if (party.replied) {
@@ -443,14 +570,13 @@ export function initRsvp(lenis) {
     if (greeting) greeting.textContent = party.label;
     const welcomeStart = byId('rsvpWelcomeStart');
     if (welcomeStart) welcomeStart.textContent = 'RSVP';
-    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
-    if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
     byId('rsvpWelcome').hidden = false;
     openReached('find', { scroll: false, animate: false });
+    syncRsvpHistory('find', 'replace');
     playInviteReveal();
   }
 
-  function selectParty(party, { animate = true } = {}) {
+  function selectParty(party, { animate = true, historyMode = 'push' } = {}) {
     const opening = party.opening || (selectedParty?.id === party.id ? selectedParty.opening : null);
     selectedParty = opening ? { ...party, opening } : party;
     form.dataset.dirty = '';
@@ -461,11 +587,11 @@ export function initRsvp(lenis) {
     const namedGuests = party.members.filter((member) => !member.plusOne);
     const several = namedGuests.length > 1;
     const first = (namedGuests[0] || party.members[0]).name.trim().split(/\s+/)[0];
-    heading.textContent = inviteMode
+    heading.textContent = inExperience()
       ? 'Confirm your attendance'
       : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
-    heading.hidden = inviteMode ? false : !several;
-    if (inviteMode) {
+    heading.hidden = inExperience() ? false : !several;
+    if (inExperience()) {
       if (intro) {
         intro.hidden = true;
         intro.textContent = '';
@@ -479,16 +605,16 @@ export function initRsvp(lenis) {
     const confirmPhoto = byId('inviteConfirmPhoto');
     const confirmMeta = byId('inviteConfirmMeta');
     if (confirmPhoto) {
-      confirmPhoto.hidden = !inviteMode;
-      if (inviteMode) {
+      confirmPhoto.hidden = !inExperience();
+      if (inExperience()) {
         confirmPhoto.classList.remove('is-revealed');
         confirmPhoto.offsetHeight;
         requestAnimationFrame(() => confirmPhoto.classList.add('is-revealed'));
       }
     }
     if (confirmMeta) {
-      confirmMeta.hidden = !inviteMode;
-      if (inviteMode) {
+      confirmMeta.hidden = !inExperience();
+      if (inExperience()) {
         confirmMeta.replaceChildren();
         const date = document.createElement('p');
         date.className = 'invite-confirm__date';
@@ -501,7 +627,7 @@ export function initRsvp(lenis) {
     }
 
     const table = document.createElement('div');
-    table.className = inviteMode ? 'party-attendance party-attendance--invite' : 'party-attendance';
+    table.className = inExperience() ? 'party-attendance party-attendance--invite' : 'party-attendance';
 
     const head = document.createElement('div');
     head.className = 'party-attendance__head';
@@ -566,13 +692,14 @@ export function initRsvp(lenis) {
       row.append(name, checks);
 
       if (member.plusOne) {
+        row.classList.add('party-member--plus');
         const guestFields = document.createElement('div');
         guestFields.className = 'party-member__guest';
         guestFields.hidden = true;
         const nameLabel = document.createElement('label');
         nameLabel.className = 'party-member__guest-name';
         nameLabel.htmlFor = `guest-name-${index}`;
-        nameLabel.textContent = 'Guest’s name';
+        nameLabel.textContent = inExperience() ? 'Plus one’s Name' : 'Guest’s name';
         const nameInput = document.createElement('input');
         nameInput.id = `guest-name-${index}`;
         Object.assign(nameInput, {
@@ -580,7 +707,7 @@ export function initRsvp(lenis) {
           name: `guest-name-${index}`,
           maxLength: 80,
           autocomplete: 'name',
-          placeholder: 'First and Last name',
+          placeholder: 'First and last name',
         });
         nameInput.addEventListener('input', () => { nameInput.setCustomValidity(''); });
         const savedName = String(member.name || '').trim();
@@ -590,6 +717,7 @@ export function initRsvp(lenis) {
             reception: row.querySelector(`[name="reception-${index}"]`)?.checked,
           });
           guestFields.hidden = !attending;
+          row.classList.toggle('is-naming', attending);
           if (!attending) {
             nameInput.value = '';
             nameInput.setCustomValidity('');
@@ -641,10 +769,11 @@ export function initRsvp(lenis) {
     members.append(table);
     if (party.wishes) byId('wishes').value = party.wishes;
     const continueBtn = byId('rsvpContinue');
-    if (continueBtn) continueBtn.textContent = inviteMode ? inviteContinueLabel(party) : 'Continue';
+    if (continueBtn) continueBtn.textContent = inExperience() ? inviteContinueLabel(party) : 'Continue';
     showStep('confirm');
     openReached('confirm', { animate });
-    if (several) focus(heading);
+    syncRsvpHistory('confirm', historyMode);
+    if (several || inExperience()) focus(heading);
   }
 
   function confirmationMessage(anyoneAttending) {
@@ -667,7 +796,64 @@ export function initRsvp(lenis) {
     });
   }
 
-  function renderSuccess(party, responses, wishes = '', { celebrate: shouldCelebrate = false, moveFocus = true } = {}) {
+  function partyFromSavedReply() {
+    if (!savedReply?.party) return null;
+    return {
+      ...savedReply.party,
+      wishes: savedReply.wishes,
+      members: savedReply.party.members.map((member, index) => {
+        const response = savedReply.responses[index];
+        if (!response) return member;
+        const ceremony = typeof response.ceremony === 'boolean' ? response.ceremony : response.attending;
+        const reception = typeof response.reception === 'boolean' ? response.reception : response.attending;
+        return {
+          ...member,
+          attending: ceremony === true || reception === true,
+          ceremony,
+          reception,
+          name: response.name || member.name,
+        };
+      }),
+    };
+  }
+
+  function editSavedReply({ animate = true, historyMode = 'replace' } = {}) {
+    const party = partyFromSavedReply() || selectedParty;
+    if (!party) return false;
+    selectParty(party, { animate, historyMode: 'none' });
+    syncRsvpHistory('confirm', historyMode);
+    return true;
+  }
+
+  function showInviteWelcomeScreen() {
+    if (!invitedParty) return;
+    document.documentElement.classList.add('is-invite-welcome');
+    document.documentElement.classList.remove('is-invite-success', 'is-invite-confirm');
+    document.getElementById('rsvp')?.classList.remove(
+      'rsvp--invite-success',
+      'rsvp--invite-confirm',
+      'rsvp--invite-leaving',
+    );
+    const greeting = byId('rsvpWelcomeGreeting');
+    if (greeting) greeting.textContent = invitedParty.label;
+    const welcomeStart = byId('rsvpWelcomeStart');
+    if (welcomeStart) welcomeStart.textContent = 'RSVP';
+    const welcome = byId('rsvpWelcome');
+    if (welcome) {
+      welcome.hidden = false;
+      welcome.classList.remove('is-leaving');
+    }
+    showStep('search');
+    openReached('find', { scroll: false, animate: false });
+    playInviteReveal();
+    syncRsvpHistory('find', applyingHistory ? 'none' : 'replace');
+  }
+
+  function renderSuccess(party, responses, wishes = '', {
+    celebrate: shouldCelebrate = false,
+    moveFocus = true,
+    historyMode = 'enter',
+  } = {}) {
     selectedParty = party;
     savedReply = { party, responses, wishes };
     const anyoneAttending = responses.some((response) => isAttendingAny(response));
@@ -685,11 +871,13 @@ export function initRsvp(lenis) {
     document.documentElement.classList.remove('is-invite-welcome');
     document.getElementById('rsvp')?.classList.remove('rsvp--invite-leaving');
     showStep('success');
+    if (historyMode === 'enter') enterSuccessHistory();
+    else syncRsvpHistory('success', historyMode);
     playSuccessReveal();
     scrollToStep(byId('rsvpSuccessStep'), () => {
       if (moveFocus) focus(byId('rsvpSuccessHeading'));
       if (!shouldCelebrate || !anyoneAttending) return;
-      window.setTimeout(() => { celebrate(); }, inviteMode ? 380 : 80);
+      window.setTimeout(() => { celebrate(); }, inExperience() ? 380 : 80);
     });
   }
 
@@ -886,16 +1074,21 @@ export function initRsvp(lenis) {
     hideSuggestions();
     input.value = '';
     syncClearButton();
+    clearExperienceChrome();
     openReached('find');
     showStep('search');
+    syncRsvpHistory('search', 'replace');
     focus(input);
   }
 
   function backToSearch() {
     selectedParty = null;
+    savedReply = null;
     form.reset();
+    clearExperienceChrome();
     openReached('find');
     showStep('search');
+    syncRsvpHistory('search', applyingHistory ? 'none' : 'push');
     renderSuggestions();
     focus(input);
   }
@@ -907,19 +1100,13 @@ export function initRsvp(lenis) {
   }
 
   function beginInviteWelcome() {
-    document.documentElement.classList.add('is-invite', 'is-invite-welcome');
-    document.getElementById('rsvp')?.classList.add('rsvp--invite');
-    const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
-    if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
-    const intro = byId('rsvpCardIntro');
-    if (intro) intro.hidden = true;
+    applyExperienceChrome();
+    document.documentElement.classList.add('is-invite-welcome');
     const welcome = byId('rsvpWelcome');
     if (welcome) {
       welcome.hidden = true;
       welcome.classList.remove('is-leaving', 'is-revealed');
     }
-    byId('rsvpHelp').hidden = true;
-    searchForm.hidden = true;
   }
 
   async function loadStatus() {
@@ -941,6 +1128,7 @@ export function initRsvp(lenis) {
       }
       showStep('search');
       openReached('find', { scroll: false });
+      syncRsvpHistory('search', 'replace');
       setLookupReady(true);
       renderSuggestions();
     } catch (error) {
@@ -986,19 +1174,32 @@ export function initRsvp(lenis) {
       results.querySelectorAll('button')[activeSuggestion]?.click();
     }
   });
-  byId('rsvpWelcomeStart').addEventListener('click', () => {
+  byId('rsvpWelcomeStart').addEventListener('click', async () => {
     if (!invitedParty || busy) return;
+    const welcomeStart = byId('rsvpWelcomeStart');
     const welcome = byId('rsvpWelcome');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    busy = true;
+    if (welcomeStart) welcomeStart.disabled = true;
+    let party = invitedParty;
+    try {
+      if (party.opening) party = await party.opening;
+    } catch {
+      busy = false;
+      if (welcomeStart) welcomeStart.disabled = false;
+      return;
+    }
+    busy = false;
+    if (welcomeStart) welcomeStart.disabled = false;
     const go = (() => {
       let done = false;
       return () => {
         if (done) return;
         done = true;
-        chooseParty(invitedParty, 'open');
+        openInvitation(party);
       };
     })();
-    if (!welcome || reduced || welcome.classList.contains('is-leaving')) {
+    if (!welcome || reduced || welcome.classList.contains('is-leaving') || party.replied) {
       go();
       return;
     }
@@ -1014,26 +1215,54 @@ export function initRsvp(lenis) {
   byId('rsvpAlreadyBack').addEventListener('click', backToSearch);
   byId('rsvpEditReply').addEventListener('click', () => {
     if (!savedReply) return;
-    const party = {
-      ...savedReply.party,
-      wishes: savedReply.wishes,
-      members: savedReply.party.members.map((member, index) => {
-        const response = savedReply.responses[index];
-        if (!response) return member;
-        const ceremony = typeof response.ceremony === 'boolean' ? response.ceremony : response.attending;
-        const reception = typeof response.reception === 'boolean' ? response.reception : response.attending;
-        return {
-          ...member,
-          attending: ceremony === true || reception === true,
-          ceremony,
-          reception,
-          name: response.name || member.name,
-        };
-      }),
-    };
-    selectParty(party);
+    // Prefer browser Back so Forward returns to success.
+    if (history.state?.rsvp === 'success') {
+      history.back();
+      return;
+    }
+    editSavedReply({ animate: true, historyMode: 'replace' });
   });
   byId('rsvpRetry').addEventListener('click', loadStatus);
+
+  window.addEventListener('popstate', () => {
+    const step = history.state?.rsvp;
+    if (!step) return;
+    applyingHistory = true;
+    try {
+      if (step === 'success' && savedReply) {
+        renderSuccess(savedReply.party, savedReply.responses, savedReply.wishes || '', {
+          celebrate: false,
+          moveFocus: false,
+          historyMode: 'none',
+        });
+        return;
+      }
+      if (step === 'confirm') {
+        if (!editSavedReply({ animate: false, historyMode: 'none' }) && selectedParty) {
+          selectParty(selectedParty, { animate: false, historyMode: 'none' });
+        }
+        return;
+      }
+      if (step === 'note' && selectedParty) {
+        showStep('search');
+        openReached('note', { animate: false });
+        return;
+      }
+      if (step === 'find') {
+        if (invitedParty && inExperience()) {
+          showInviteWelcomeScreen();
+          return;
+        }
+        backToSearch();
+        return;
+      }
+      if (step === 'search') {
+        backToSearch();
+      }
+    } finally {
+      applyingHistory = false;
+    }
+  });
 
   function repliesFromForm() {
     return selectedParty.members.map((member, index) => {
@@ -1061,12 +1290,13 @@ export function initRsvp(lenis) {
       scrollToStep(field);
       return;
     }
-    if (inviteMode) {
+    if (inExperience()) {
       form.requestSubmit();
       return;
     }
     byId('rsvpWishesSummary').replaceChildren(...summaryItems(selectedParty, responses));
     openReached('note');
+    syncRsvpHistory('note', 'push');
     focus(byId('rsvpWishesHeading'));
   });
 
@@ -1096,7 +1326,7 @@ export function initRsvp(lenis) {
     form.querySelectorAll('button, input, textarea').forEach((el) => { el.disabled = true; });
     submit.textContent = 'Saving…';
     const continueBtn = byId('rsvpContinue');
-    if (inviteMode && continueBtn) continueBtn.textContent = 'Saving…';
+    if (inExperience() && continueBtn) continueBtn.textContent = 'Saving…';
     status.textContent = 'Saving your RSVP…';
     try {
       const data = await request(body);
@@ -1115,7 +1345,7 @@ export function initRsvp(lenis) {
       form.querySelectorAll('button, input, textarea').forEach((el) => { el.disabled = false; });
       submit.textContent = 'Confirm RSVP';
       const continueBtn = byId('rsvpContinue');
-      if (continueBtn) continueBtn.textContent = inviteMode ? inviteContinueLabel() : 'Continue';
+      if (continueBtn) continueBtn.textContent = inExperience() ? inviteContinueLabel() : 'Continue';
     }
   });
   window.addEventListener('resize', () => {

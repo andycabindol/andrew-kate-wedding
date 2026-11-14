@@ -51,6 +51,9 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg);
+  background-image: var(--floral-scatter), var(--paper-grain);
+  background-blend-mode: normal, multiply;
+  background-repeat: repeat;
   overflow-x: clip;
 }
 
@@ -60,6 +63,11 @@ html.lenis body {
 }
 
 body {
+  /* Keep the paper layer inside this stacking context (z-index:-1 otherwise
+     paints behind the canvas and disappears on mobile). */
+  isolation: isolate;
+  min-height: 100%;
+  min-height: 100dvh;
   overflow-x: clip;
   font-family: var(--font-sans);
   font-size: 18px;
@@ -68,8 +76,22 @@ body {
   letter-spacing: -0.02em;
   color: var(--color-text-secondary);
   background-color: var(--color-bg);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  /* Extend past the dynamic mobile toolbar / overscroll so texture never gaps */
+  top: -50vmax;
+  right: 0;
+  bottom: -50vmax;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--color-bg);
   background-image: var(--floral-scatter), var(--paper-grain);
   background-blend-mode: normal, multiply;
+  background-repeat: repeat;
 }
 
 img {
@@ -3083,6 +3105,57 @@ html.is-invite .rsvp-stage {
   display: none;
 }
 
+.party-attendance--invite .party-member--plus.is-naming {
+  padding-bottom: 14px;
+}
+
+.party-attendance--invite .party-member__guest {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  padding: 12px 14px 14px;
+  border-radius: var(--radius);
+  background: rgba(31, 75, 62, 0.06);
+}
+
+.party-attendance--invite .party-member__guest-name {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.party-attendance--invite .party-member__guest-name + input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 0 6px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.party-attendance--invite .party-member__guest-name + input::placeholder {
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-style: normal;
+  letter-spacing: -0.02em;
+}
+
+.party-attendance--invite .party-member__guest-name + input:focus {
+  outline: none;
+  border-bottom-color: var(--color-emerald);
+}
+
 .rsvp--invite #rsvpContinue {
   min-height: 52px;
   margin-top: 0;
@@ -3691,6 +3764,11 @@ html.is-invite .rsvp-stage {
 .party-member__guest {
   grid-column: 1 / -1;
   margin-top: 4px;
+  min-width: 0;
+}
+
+.party-member--plus.is-naming .party-member__name {
+  color: var(--color-text-muted);
 }
 
 .party-member:last-child {
@@ -4277,12 +4355,40 @@ html.is-invite .rsvp-stage {
     font-size: 22px;
   }
 
+  /* Stack hero so paper isn’t hard-cut mid-photo in the first viewport */
   .hero {
-    min-height: 100svh;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero__content {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    order: 1;
   }
 
   .hero__card {
-    padding: 80px 0 32px;
+    padding: calc(84px + env(safe-area-inset-top, 0px)) 0 32px;
+    /* Use the page paper layer so texture isn’t boxed/cut at the card edges */
+    background: transparent;
+    isolation: auto;
+  }
+
+  .hero__image-wrap {
+    position: relative;
+    inset: auto;
+    order: 2;
+    width: 100%;
+    height: min(72svh, 560px);
+  }
+
+  .hero.is-revealed .hero__image {
+    transform: translate3d(0, 0, 0) scale(1.04);
   }
 
   .hero__title {
@@ -4554,6 +4660,40 @@ html.is-invite .rsvp-stage {
 
   body.subpage .venue-page__next {
     text-align: left;
+  }
+
+  /* Venue pages: beat .venue .label / .venue .section-heading centering */
+  .venue-page .label,
+  .venue.venue-page .label {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+  }
+
+  .venue-page .section-heading,
+  .venue.venue-page .section-heading,
+  .venue-page .section-heading--center {
+    text-align: left;
+  }
+
+  .venue-page .venue__address,
+  .venue.venue-page .venue__address {
+    width: auto;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: left;
+  }
+
+  .venue-page .body-text--center,
+  .venue-page .venue-page__intro,
+  .venue-page .venue-page__next,
+  .venue-page .venue__info {
+    text-align: left;
+    margin-left: 0;
+    margin-right: 0;
+    max-width: none;
   }
 
   body.subpage .page-title__bloom img {
@@ -4918,6 +5058,10 @@ button:disabled { cursor: wait; opacity: .55; }
   object-fit: cover;
   object-position: center 28%;
   border-radius: 1px;
+}
+
+.rsvp-success-ticker__set .rsvp-success-polaroid:nth-child(even) img {
+  filter: grayscale(1);
 }
 
 @keyframes rsvp-success-ticker {
