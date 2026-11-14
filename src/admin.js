@@ -1,3 +1,4 @@
+import QRCode from 'qrcode';
 import { weddingConfig } from './wedding-config.js';
 import { parseCsv } from '../supabase/functions/wedding-rsvp/matching.js';
 
@@ -38,6 +39,39 @@ async function request(body) {
 
 function guestCount(party) {
   return party.members.filter((member) => member.attending === true || member.ceremony === true || member.reception === true).length;
+}
+
+function inviteUrl(party) {
+  if (!party?.inviteToken) return '';
+  const url = new URL('/rsvp', location.origin);
+  url.searchParams.set('invite', party.inviteToken);
+  return url.toString();
+}
+
+function qrFilename(party) {
+  const slug = String(party.label || party.id || 'invite')
+    .normalize('NFKD')
+    .replace(/[^\w\s-]+/g, '')
+    .trim()
+    .replace(/[\s_-]+/g, '-')
+    .toLowerCase()
+    .slice(0, 60);
+  return `${slug || 'invite'}-rsvp-qr.png`;
+}
+
+async function downloadInviteQr(party) {
+  const url = inviteUrl(party);
+  if (!url) throw new Error('Link unavailable');
+  const dataUrl = await QRCode.toDataURL(url, {
+    errorCorrectionLevel: 'H',
+    margin: 2,
+    width: 1024,
+    color: { dark: '#111111', light: '#ffffff' },
+  });
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = qrFilename(party);
+  link.click();
 }
 
 function memberStatus(member) {
@@ -192,20 +226,41 @@ function render() {
     copy.className = 'btn btn--dark';
     copy.textContent = 'Copy invitation link';
     copy.addEventListener('click', async () => {
-      if (!party.inviteToken) {
+      const url = inviteUrl(party);
+      if (!url) {
         copy.textContent = 'Link unavailable';
         window.setTimeout(() => { copy.textContent = 'Copy invitation link'; }, 1600);
         return;
       }
-      const url = new URL('/rsvp', location.origin);
-      url.searchParams.set('invite', party.inviteToken);
       try {
-        await navigator.clipboard.writeText(url.toString());
+        await navigator.clipboard.writeText(url);
         copy.textContent = 'Copied';
       } catch {
         copy.textContent = 'Copy failed';
       }
       window.setTimeout(() => { copy.textContent = 'Copy invitation link'; }, 1600);
+    });
+    const qr = document.createElement('button');
+    qr.type = 'button';
+    qr.className = 'btn btn--secondary';
+    qr.textContent = 'Download QR code';
+    qr.addEventListener('click', async () => {
+      if (!party.inviteToken) {
+        qr.textContent = 'Link unavailable';
+        window.setTimeout(() => { qr.textContent = 'Download QR code'; }, 1600);
+        return;
+      }
+      const label = qr.textContent;
+      qr.disabled = true;
+      qr.textContent = 'Preparing…';
+      try {
+        await downloadInviteQr(party);
+        qr.textContent = 'Downloaded';
+      } catch {
+        qr.textContent = 'Download failed';
+      }
+      qr.disabled = false;
+      window.setTimeout(() => { qr.textContent = label; }, 1600);
     });
     const edit = document.createElement('button');
     edit.type = 'button';
@@ -225,7 +280,7 @@ function render() {
     remove.textContent = 'Delete';
     remove.addEventListener('click', () => removeParty(party));
     trailing.append(clear, remove);
-    actions.append(copy, edit, trailing);
+    actions.append(copy, qr, edit, trailing);
     card.append(actions);
     list.append(card);
   }
