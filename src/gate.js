@@ -11,8 +11,8 @@ function shouldReplay() {
 }
 
 function hasInvitePass() {
-  const query = pageQuery();
-  return Boolean((query.get('party') || query.get('invite') || '').trim());
+  const invite = (pageQuery().get('invite') || '').trim();
+  return /^iv1\.[A-Za-z0-9_-]{20,200}$/.test(invite);
 }
 
 function hasSession() {

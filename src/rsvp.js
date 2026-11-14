@@ -18,15 +18,11 @@ export function initRsvp(lenis) {
   let activeSuggestion = -1;
   let busy = false;
   const pageQuery = new URLSearchParams(location.search);
-  const inviteMode = Boolean(invitePartyId());
+  const inviteMode = Boolean(inviteToken());
 
-  function slugId(value) {
-    return String(value || '').normalize('NFKD').replace(/\p{M}/gu, '')
-      .toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
-  }
-
-  function invitePartyId() {
-    return (pageQuery.get('party') || pageQuery.get('invite') || '').trim();
+  function inviteToken() {
+    const value = (pageQuery.get('invite') || '').trim();
+    return /^iv1\.[A-Za-z0-9_-]{20,200}$/.test(value) ? value : '';
   }
 
   function showStep(step) {
@@ -762,26 +758,26 @@ export function initRsvp(lenis) {
     openReached('find', { scroll: false });
     setLookupReady(false);
     try {
+      if (inviteMode) {
+        const data = await request({ action: 'invite', invite: inviteToken() });
+        const party = { ...data.party, token: data.token };
+        applyInviteChrome(party);
+        return;
+      }
       const parties = await loadGuestList();
       if (!parties.length) {
         showStep('pending');
-        return;
-      }
-      const invitedId = slugId(invitePartyId());
-      if (invitedId) {
-        const party = parties.find((item) => item.id === invitedId);
-        if (!party) {
-          showStep('missing');
-          return;
-        }
-        applyInviteChrome(party);
         return;
       }
       showStep('search');
       openReached('find', { scroll: false });
       setLookupReady(true);
       renderSuggestions();
-    } catch {
+    } catch (error) {
+      if (inviteMode && error.status === 404) {
+        showStep('missing');
+        return;
+      }
       showStep('unavailable');
     }
   }

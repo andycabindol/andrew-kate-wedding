@@ -30,8 +30,8 @@
       (function () {
         try {
           var q = new URLSearchParams(location.search);
-          var invite = (q.get('party') || q.get('invite') || '').trim();
-          if (invite) {
+          var invite = (q.get('invite') || '').trim();
+          if (/^iv1\.[A-Za-z0-9_-]{20,200}$/.test(invite)) {
             sessionStorage.setItem('ka-session', '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e');
             document.documentElement.classList.add('is-unlocked');
             return;

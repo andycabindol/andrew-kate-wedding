@@ -212,6 +212,17 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
     })));
     return `${payload}.${await signature(payload)}`;
   }
+  async function inviteTokenFor(partyId) {
+    return `iv1.${await signature(`invite-v1:${partyId}`)}`;
+  }
+  async function partyFromInviteToken(token) {
+    if (typeof token !== 'string' || !/^iv1\.[A-Za-z0-9_-]{20,200}$/.test(token)) return null;
+    const parties = await database.list();
+    for (const party of parties) {
+      if (sameSecret(token, await inviteTokenFor(party.id))) return party;
+    }
+    return null;
+  }
   async function verify(token) {
     if (typeof token !== 'string' || token.length > 10000) return null;
     try {
@@ -246,7 +257,7 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
       let body;
       try { body = JSON.parse(new TextDecoder().decode(buffer)); }
       catch { return reply({ error: 'Please send a valid reply.' }, 400); }
-      if (!body || !['status', 'list', 'open', 'search', 'submit', 'admin-login', 'admin-list', 'admin-save', 'admin-delete', 'admin-clear', 'admin-attendance', 'admin-import'].includes(body.action)) return reply({ error: 'Unknown request.' }, 400);
+      if (!body || !['status', 'list', 'open', 'invite', 'search', 'submit', 'admin-login', 'admin-list', 'admin-save', 'admin-delete', 'admin-clear', 'admin-attendance', 'admin-import'].includes(body.action)) return reply({ error: 'Unknown request.' }, 400);
       if (body.action === 'status') return reply({ open: await database.isOpen() });
       if (body.action === 'list') {
         const parties = await database.list();
@@ -257,7 +268,13 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
         if (body.action === 'admin-list') {
           const session = await verify(body.token);
           if (!session || session.role !== 'admin') return reply({ error: 'Please sign in again.' }, 401);
-          return reply({ parties: await database.list() });
+          const parties = await database.list();
+          return reply({
+            parties: await Promise.all(parties.map(async (party) => ({
+              ...party,
+              inviteToken: await inviteTokenFor(party.id),
+            }))),
+          });
         }
         const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
         const rateKey = await signature(`rate:admin:${ip}`);
@@ -378,6 +395,12 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
         const party = await database.getParty(id);
         if (!party) return reply({ error: 'Find your invitation again.' }, 404);
         return reply({ party, token: await tokenFor(party) });
+      }
+      if (body.action === 'invite') {
+        const invite = typeof body.invite === 'string' ? body.invite.trim() : '';
+        const party = await partyFromInviteToken(invite);
+        if (!party) return reply({ error: 'This invitation link isn’t valid.' }, 404);
+        return reply({ party, token: await tokenFor(party), inviteToken: invite });
       }
       if (body.action === 'search') {
         if (typeof body.name !== 'string' || body.name.trim().length < 3 || body.name.length > 120) {

@@ -192,8 +192,13 @@ function render() {
     copy.className = 'btn btn--dark';
     copy.textContent = 'Copy invitation link';
     copy.addEventListener('click', async () => {
+      if (!party.inviteToken) {
+        copy.textContent = 'Link unavailable';
+        window.setTimeout(() => { copy.textContent = 'Copy invitation link'; }, 1600);
+        return;
+      }
       const url = new URL('/rsvp', location.origin);
-      url.searchParams.set('party', party.id);
+      url.searchParams.set('invite', party.inviteToken);
       try {
         await navigator.clipboard.writeText(url.toString());
         copy.textContent = 'Copied';

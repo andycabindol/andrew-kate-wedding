@@ -14,6 +14,7 @@ function setup() {
   const handler = createHandler({ secret: 'test-only-secret', now: () => clock, database: {
     isOpen: async () => open,
     allowRequest: async () => allowed,
+    list: async () => [party],
     search: async (name) => name === 'alex guest' ? [party] : [],
     getParty: async (id) => id === party.id ? party : null,
     save: async (data) => { if (failSave) throw new Error('offline'); rows.set(data.invitation_id, data); },
@@ -95,6 +96,32 @@ test('rejects a forged, missing or expired invitation token', async () => {
   app.expire();
   assert.equal((await app.call(valid(token))).status, 401);
   assert.equal(app.rows.size, 0);
+});
+test('family invite links use unguessable tokens and reject forgeries', async () => {
+  let clock = 1000000;
+  const handler = createHandler({
+    secret: 'test-only-secret',
+    adminPassword: 'test-admin',
+    now: () => clock,
+    database: {
+      allowRequest: async () => true,
+      list: async () => [party],
+      getParty: async (id) => id === party.id ? party : null,
+    },
+  });
+  const call = (body) => handler(new Request('https://example.test', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  }));
+  const login = await (await call({ action: 'admin-login', password: 'test-admin' })).json();
+  const listed = await (await call({ action: 'admin-list', token: login.token })).json();
+  const invite = listed.parties[0].inviteToken;
+  assert.match(invite, /^iv1\.[A-Za-z0-9_-]{20,}$/);
+  assert.equal(invite.includes(party.id), false);
+  const opened = await (await call({ action: 'invite', invite })).json();
+  assert.equal(opened.party.id, party.id);
+  assert.ok(opened.token);
+  assert.equal((await call({ action: 'invite', invite: 'iv1.not-a-real-token-value-here' })).status, 404);
+  assert.equal((await call({ action: 'invite', invite: party.id })).status, 404);
 });
 test('rejects missing, duplicated, uninvited guests and non-boolean attendance', async () => {
   const app = setup(); const token = await app.search();
