@@ -29,8 +29,15 @@
     <script>
       (function () {
         try {
-          if (new URLSearchParams(location.search).has('gate')) sessionStorage.removeItem('ka-session');
-          if (!new URLSearchParams(location.search).has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
+          var q = new URLSearchParams(location.search);
+          var invite = (q.get('party') || q.get('invite') || '').trim();
+          if (invite) {
+            sessionStorage.setItem('ka-session', '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e');
+            document.documentElement.classList.add('is-unlocked');
+            return;
+          }
+          if (q.has('gate')) sessionStorage.removeItem('ka-session');
+          if (!q.has('gate') && sessionStorage.getItem('ka-session') === '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e') {
             document.documentElement.classList.add('is-unlocked');
           } else {
             document.documentElement.classList.add('is-locked');

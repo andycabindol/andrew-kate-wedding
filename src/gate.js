@@ -2,12 +2,25 @@ const SESSION_KEY = 'ka-session';
 const INTRO_KEY = 'ka-intro';
 const PASSWORD_HASH = '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e';
 
+function pageQuery() {
+  return new URLSearchParams(window.location.search);
+}
+
 function shouldReplay() {
-  return new URLSearchParams(window.location.search).has('gate');
+  return pageQuery().has('gate');
+}
+
+function hasInvitePass() {
+  const query = pageQuery();
+  return Boolean((query.get('party') || query.get('invite') || '').trim());
 }
 
 function hasSession() {
   try {
+    if (hasInvitePass()) {
+      rememberSession();
+      return true;
+    }
     if (shouldReplay()) {
       sessionStorage.removeItem(SESSION_KEY);
       return false;
