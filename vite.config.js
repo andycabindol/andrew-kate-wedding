@@ -3,8 +3,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 const base = '/';
-const prodPages = ['wedding', 'reception', 'prepare', 'party', 'rsvp', 'admin'];
-const devOnlyPages = ['gallery'];
+const pages = ['wedding', 'reception', 'prepare', 'gallery', 'party', 'rsvp', 'admin'];
 
 function rewriteCleanUrl(url, pages) {
   if (!url) return url;
@@ -47,16 +46,13 @@ function cleanHtmlUrls(pages) {
   };
 }
 
-export default defineConfig(({ command }) => {
-  const isDev = command === 'serve';
-  const cleanPages = isDev ? [...prodPages, ...devOnlyPages] : prodPages;
-
+export default defineConfig(() => {
   return {
     // Custom domain: https://katieandrew.wedding/
     base,
     root: '.',
     publicDir: 'public',
-    plugins: [cleanHtmlUrls(cleanPages)],
+    plugins: [cleanHtmlUrls(pages)],
     build: {
       rollupOptions: {
         input: {
@@ -64,6 +60,7 @@ export default defineConfig(({ command }) => {
           wedding: resolve(__dirname, 'wedding.html'),
           reception: resolve(__dirname, 'reception.html'),
           prepare: resolve(__dirname, 'prepare.html'),
+          gallery: resolve(__dirname, 'gallery.html'),
           party: resolve(__dirname, 'party.html'),
           rsvp: resolve(__dirname, 'rsvp.html'),
           admin: resolve(__dirname, 'admin.html'),

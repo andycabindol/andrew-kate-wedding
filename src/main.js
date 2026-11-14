@@ -265,31 +265,6 @@ updateNav();
 bindNav(nav);
 enhanceRsvpBlooms(document);
 
-function injectDevNavLinks() {
-  if (!import.meta.env.DEV) return;
-
-  const path = location.pathname.replace(/\/$/, '') || '/';
-  document.querySelectorAll('#navLinks, #navMobile').forEach((nav) => {
-    if (nav.querySelector('[data-dev-nav="gallery"]')) return;
-
-    const link = document.createElement('a');
-    link.href = '/gallery';
-    link.textContent = 'Gallery';
-    link.dataset.devNav = 'gallery';
-    if (path === '/gallery') link.setAttribute('aria-current', 'page');
-
-    const rsvp = nav.querySelector('.nav__rsvp-btn, a[href="/rsvp"]');
-    if (rsvp) rsvp.before(link);
-    else nav.append(link);
-  });
-}
-
-injectDevNavLinks();
-
-if (import.meta.env.PROD && location.pathname.replace(/\/$/, '') === '/gallery') {
-  location.replace('/');
-}
-
 function initGalleryLightbox() {
   const grid = document.getElementById('galleryGrid');
   const dialog = document.getElementById('galleryLightbox');
