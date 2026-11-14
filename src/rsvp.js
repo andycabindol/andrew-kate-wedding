@@ -264,6 +264,38 @@ export function initRsvp(lenis) {
     return svg;
   }
 
+  function openEventDialog(event) {
+    const dialog = byId('rsvpEventDialog');
+    if (!dialog || !event) return;
+    byId('rsvpEventDialogTitle').textContent = event.label;
+    byId('rsvpEventDialogDetail').textContent = event.detail;
+    byId('rsvpEventDialogPlace').textContent = event.place || '';
+    const address = byId('rsvpEventDialogAddress');
+    address.textContent = event.address || '';
+    address.href = event.mapUrl || '#';
+    address.hidden = !event.address;
+    byId('rsvpEventDialogSummary').textContent = event.summary || '';
+    const link = byId('rsvpEventDialogLink');
+    const photo = byId('rsvpEventDialogPhoto');
+    link.href = event.pageUrl || event.mapUrl || '#';
+    photo.src = event.photo || '';
+    photo.alt = event.photoAlt || event.place || '';
+    link.hidden = !event.photo;
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function bindEventDialog() {
+    const dialog = byId('rsvpEventDialog');
+    if (!dialog || dialog.dataset.bound === '1') return;
+    dialog.dataset.bound = '1';
+    byId('rsvpEventDialogClose')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+
+  bindEventDialog();
+
   function summaryItems(party, responses = party.members) {
     return responses.map((response, index) => {
       const attending = isAttendingAny(response);
@@ -371,8 +403,8 @@ export function initRsvp(lenis) {
     heading.textContent = inviteMode ? party.label : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
     heading.hidden = inviteMode || !several;
     intro.textContent = party.members.length > 1
-      ? 'Check the events each person will attend. Leave a box unchecked if they can’t make that part.'
-      : 'Check the events you’ll attend. Leave a box unchecked if you can’t make that part.';
+      ? 'Everyone is marked as attending both events. Uncheck a box if someone can’t make that part.'
+      : 'You’re marked as attending both events. Uncheck a box if you can’t make that part.';
     intro.hidden = false;
 
     const table = document.createElement('div');
@@ -380,18 +412,27 @@ export function initRsvp(lenis) {
 
     const head = document.createElement('div');
     head.className = 'party-attendance__head';
-    head.setAttribute('aria-hidden', 'true');
     const headGuest = document.createElement('span');
     headGuest.className = 'party-attendance__spacer';
+    headGuest.setAttribute('aria-hidden', 'true');
     head.append(headGuest);
     [['ceremony', weddingConfig.events.ceremony], ['reception', weddingConfig.events.reception]].forEach(([, event]) => {
-      const col = document.createElement('span');
+      const col = document.createElement('div');
       col.className = 'party-attendance__event';
+      const titleRow = document.createElement('div');
+      titleRow.className = 'party-attendance__event-title';
       const title = document.createElement('strong');
       title.textContent = event.label;
+      const infoBtn = document.createElement('button');
+      infoBtn.type = 'button';
+      infoBtn.className = 'party-attendance__info';
+      infoBtn.setAttribute('aria-label', `${event.label} details`);
+      infoBtn.append(phosphorIcon('M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z'));
+      infoBtn.addEventListener('click', () => openEventDialog(event));
+      titleRow.append(title, infoBtn);
       const detail = document.createElement('small');
       detail.textContent = event.detail;
-      col.append(title, detail);
+      col.append(titleRow, detail);
       head.append(col);
     });
     table.append(head);
@@ -418,7 +459,7 @@ export function initRsvp(lenis) {
           value: 'yes',
         });
         input.setAttribute('aria-label', `${event.label} for ${member.name}`);
-        if (member[key] === true) input.checked = true;
+        input.checked = member[key] !== false;
         const caption = document.createElement('span');
         caption.className = 'party-member__check-label';
         caption.textContent = event.label;
@@ -458,11 +499,11 @@ export function initRsvp(lenis) {
             nameInput.setCustomValidity('');
           }
         };
-        if (isAttendingAny(member) && savedName && !/^plus one( \d+)?$/i.test(savedName)) {
-          guestFields.hidden = false;
+        if (savedName && !/^plus one( \d+)?$/i.test(savedName)) {
           nameInput.value = savedName;
         }
         checks.addEventListener('change', syncGuest);
+        syncGuest();
         guestFields.append(nameLabel, nameInput);
         row.append(guestFields);
       }

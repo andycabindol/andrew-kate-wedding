@@ -190,7 +190,7 @@
                 <p class="body-text rsvp__confirm-intro" id="rsvpConfirmIntro">Please reply for everyone on this invitation.</p>
                 <div id="partyMembers"></div>
                 <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
-                <button type="button" class="btn btn--secondary btn--full rsvp-change" id="changePartyBtn">Find a different invitation</button>
+                <button type="button" class="btn btn--text rsvp-change" id="changePartyBtn">Find a different invitation</button>
               </div>
               <div class="rsvp-step-block__body" id="rsvpAlreadyBody" hidden>
                 <p class="rsvp-already-party" id="rsvpAlreadyParty"></p>
@@ -218,7 +218,31 @@
           </div>
           </div>
         </div>
+        <dialog class="rsvp-event-dialog" id="rsvpEventDialog" aria-labelledby="rsvpEventDialogTitle">
+          <button type="button" class="rsvp-event-dialog__close" id="rsvpEventDialogClose" aria-label="Close">
+            <svg viewBox="0 0 256 256" aria-hidden="true"><path fill="currentColor" d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" /></svg>
+          </button>
+          <h2 class="rsvp-event-dialog__title" id="rsvpEventDialogTitle"></h2>
+          <p class="rsvp-event-dialog__detail" id="rsvpEventDialogDetail"></p>
+          <p class="rsvp-event-dialog__place" id="rsvpEventDialogPlace"></p>
+          <a class="rsvp-event-dialog__address" id="rsvpEventDialogAddress" href="#" target="_blank" rel="noopener noreferrer"></a>
+          <p class="body-text rsvp-event-dialog__summary" id="rsvpEventDialogSummary"></p>
+          <a class="rsvp-event-dialog__photo-link" id="rsvpEventDialogLink" href="#">
+            <img class="rsvp-event-dialog__photo" id="rsvpEventDialogPhoto" alt="" />
+          </a>
+        </dialog>
+
         <div id="rsvpSuccessStep" class="rsvp-state rsvp-state--success" hidden>
+          <figure class="rsvp-success-photo">
+            <img
+              src="/images/gallery/photo-09.jpg"
+              alt="Katie and Andrew"
+              width="1333"
+              height="2000"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
           <h2 class="rsvp-state__title rsvp-success-message" id="rsvpSuccessHeading" tabindex="-1">
             <span class="rsvp-success-mark" aria-hidden="true">
               <svg viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z" /></svg>
