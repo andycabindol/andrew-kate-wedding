@@ -33,7 +33,7 @@
           var invite = (q.get('invite') || '').trim();
           if (/^iv1\.[A-Za-z0-9_-]{20,200}$/.test(invite)) {
             sessionStorage.setItem('ka-session', '5313e5bf17148de844ff74be3663d47c6e361ca469b30a36337701233c89a15e');
-            document.documentElement.classList.add('is-unlocked');
+            document.documentElement.classList.add('is-unlocked', 'is-invite');
             return;
           }
           if (q.has('gate')) sessionStorage.removeItem('ka-session');
@@ -162,13 +162,49 @@
           <div class="rsvp-card__pane is-active">
           <div class="rsvp-step-block is-open" id="rsvpFindBlock">
             <div class="rsvp-step-block__body">
-              <div class="rsvp-card__intro">
+              <div class="rsvp-card__intro" id="rsvpCardIntro">
                 <h1 class="section-heading" id="rsvpTitle">Confirm your RSVP</h1>
-                <p class="rsvp-help" id="rsvpHelp">Please RSVP by <span data-rsvp-deadline>October 31, 2026</span>. <span class="rsvp-help__aside">Need help? <a href="mailto:AndrewKatieTorres@gmail.com">Email Katie</a></span></p>
+                <p class="rsvp-help" id="rsvpHelp">Please RSVP by <span data-rsvp-deadline>December 1, 2026</span>. <span class="rsvp-help__aside">Need help? <a href="mailto:AndrewKatieTorres@gmail.com">Email Katie</a></span></p>
               </div>
               <div class="rsvp-welcome" id="rsvpWelcome" hidden>
-                <p class="body-text" id="rsvpWelcomeText">We’re so glad you can celebrate with us. Please reply by <span data-rsvp-deadline>October 31, 2026</span>. <span class="rsvp-help__aside">Need help? <a href="mailto:AndrewKatieTorres@gmail.com">Email Katie</a></span></p>
-                <button type="button" class="btn btn--dark" id="rsvpWelcomeStart">RSVP</button>
+                <header class="invite-welcome__masthead">
+                  <p class="invite-welcome__kicker">We are getting married</p>
+                  <div class="invite-welcome__title-block">
+                    <h1 class="invite-welcome__names">Katie &amp; Andrew</h1>
+                    <div class="invite-welcome__meta">
+                      <p class="invite-confirm__date">05.29.2027</p>
+                      <p class="invite-confirm__place">AMES, IA</p>
+                    </div>
+                  </div>
+                </header>
+                <div class="invite-reveal" id="inviteReveal" aria-hidden="true">
+                  <figure class="invite-reveal__frame invite-reveal__frame--left">
+                    <img
+                      src="/images/gallery/photo-01.jpg"
+                      alt=""
+                      width="1333"
+                      height="2000"
+                      decoding="async"
+                      fetchpriority="high"
+                    />
+                  </figure>
+                  <figure class="invite-reveal__frame invite-reveal__frame--right">
+                    <img
+                      src="/images/gallery/photo-05.jpg"
+                      alt=""
+                      width="1333"
+                      height="2000"
+                      decoding="async"
+                      fetchpriority="high"
+                    />
+                  </figure>
+                </div>
+                <div class="invite-welcome__dock">
+                  <p class="invite-welcome__brand">You’re invited!</p>
+                  <p class="invite-welcome__greeting" id="rsvpWelcomeGreeting">Welcome</p>
+                  <button type="button" class="btn btn--dark invite-welcome__cta" id="rsvpWelcomeStart">RSVP</button>
+                  <p class="invite-welcome__deadline" id="rsvpWelcomeText">Please RSVP by December 1</p>
+                </div>
               </div>
               <form id="rsvpLookupForm" class="rsvp-lookup">
                 <div class="form-group guest-lookup">
@@ -195,11 +231,30 @@
             <div class="rsvp-card__pane">
             <div class="rsvp-step-block" id="rsvpConfirmBlock">
               <div class="rsvp-step-block__body" id="rsvpConfirmBody" hidden>
-                <h2 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h2>
+                <figure class="invite-confirm__photo" id="inviteConfirmPhoto" hidden>
+                  <img
+                    src="/images/gallery/photo-09.jpg"
+                    alt="Katie and Andrew"
+                    width="1333"
+                    height="2000"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </figure>
+                <div class="invite-confirm__title-block">
+                  <h2 class="rsvp-party-heading" id="partyHeading" tabindex="-1"></h2>
+                  <div class="invite-confirm__meta" id="inviteConfirmMeta" hidden>
+                    <p class="invite-confirm__date">05.29.2027</p>
+                    <p class="invite-confirm__place">AMES, IA</p>
+                  </div>
+                </div>
                 <p class="body-text rsvp__confirm-intro" id="rsvpConfirmIntro">Please reply for everyone on this invitation.</p>
-                <div id="partyMembers"></div>
-                <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
-                <button type="button" class="btn btn--text rsvp-change" id="changePartyBtn">Find a different invitation</button>
+                <div class="invite-confirm__members" id="partyMembers"></div>
+                <div class="invite-confirm__dock">
+                  <button type="button" class="btn btn--dark btn--full" id="rsvpContinue">Continue</button>
+                  <p class="invite-confirm__hint">You can change this later</p>
+                  <button type="button" class="btn btn--text rsvp-change" id="changePartyBtn">Find a different invitation</button>
+                </div>
               </div>
               <div class="rsvp-step-block__body" id="rsvpAlreadyBody" hidden>
                 <p class="rsvp-already-party" id="rsvpAlreadyParty"></p>
@@ -242,34 +297,99 @@
         </dialog>
 
         <div id="rsvpSuccessStep" class="rsvp-state rsvp-state--success" hidden>
-          <figure class="rsvp-success-photo">
-            <img
-              src="/images/gallery/photo-09.jpg"
-              alt="Katie and Andrew"
-              width="1333"
-              height="2000"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-          <h2 class="rsvp-state__title rsvp-success-message" id="rsvpSuccessHeading" tabindex="-1">
-            <span class="rsvp-success-mark" aria-hidden="true">
-              <svg viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z" /></svg>
-            </span>
-            <span class="rsvp-success-copy">
-              <span id="rsvpSuccessMessage"></span>
-              <span id="rsvpSuccessDetail" class="rsvp-success-detail"></span>
-            </span>
-          </h2>
-          <ul id="rsvpSummary" class="rsvp-summary" aria-label="Your saved RSVP"></ul>
-          <div class="rsvp-success-actions" id="rsvpPrepareNote" hidden>
-            <a href="/prepare" class="btn btn--dark">How to prepare</a>
+          <header class="rsvp-success-masthead">
+            <div class="invite-welcome__title-block rsvp-success-title-block">
+              <p class="invite-welcome__names rsvp-success-names">Katie &amp; Andrew</p>
+              <div class="invite-welcome__meta">
+                <p class="invite-confirm__date">05.29.2027</p>
+                <p class="invite-confirm__place">AMES, IA</p>
+              </div>
+            </div>
+          </header>
+          <div class="rsvp-success-ticker" id="rsvpSuccessPhoto" aria-hidden="true">
+            <div class="rsvp-success-ticker__mask">
+              <div class="rsvp-success-ticker__track">
+                <div class="rsvp-success-ticker__set">
+                  <figure class="rsvp-success-polaroid" style="--tilt: -3.5deg">
+                    <img src="/images/gallery/photo-01.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 2.75deg">
+                    <img src="/images/gallery/photo-05.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -2.25deg">
+                    <img src="/images/gallery/photo-09.jpg" alt="" width="1333" height="2000" decoding="async" fetchpriority="high" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 3.25deg">
+                    <img src="/images/gallery/photo-12.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -4deg">
+                    <img src="/images/gallery/photo-15.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 2deg">
+                    <img src="/images/gallery/photo-20.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -2.75deg">
+                    <img src="/images/gallery/photo-22.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 3.5deg">
+                    <img src="/images/gallery/photo-26.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                </div>
+                <div class="rsvp-success-ticker__set">
+                  <figure class="rsvp-success-polaroid" style="--tilt: -3.5deg">
+                    <img src="/images/gallery/photo-01.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 2.75deg">
+                    <img src="/images/gallery/photo-05.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -2.25deg">
+                    <img src="/images/gallery/photo-09.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 3.25deg">
+                    <img src="/images/gallery/photo-12.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -4deg">
+                    <img src="/images/gallery/photo-15.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 2deg">
+                    <img src="/images/gallery/photo-20.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: -2.75deg">
+                    <img src="/images/gallery/photo-22.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                  <figure class="rsvp-success-polaroid" style="--tilt: 3.5deg">
+                    <img src="/images/gallery/photo-26.jpg" alt="" width="1333" height="2000" decoding="async" />
+                  </figure>
+                </div>
+              </div>
+            </div>
           </div>
+          <div class="rsvp-success-hero">
+            <h2 class="rsvp-success-title" id="rsvpSuccessHeading" tabindex="-1">
+              <span class="rsvp-success-mark" aria-hidden="true">
+                <svg viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z" /></svg>
+              </span>
+              <span id="rsvpSuccessMessage"></span>
+            </h2>
+            <p id="rsvpSuccessDetail" class="rsvp-success-detail"></p>
+          </div>
+          <ul id="rsvpSummary" class="rsvp-summary" aria-label="Your saved RSVP"></ul>
+          <nav class="rsvp-success-actions" id="rsvpPrepareNote" hidden aria-label="What’s next">
+            <a href="/prepare" class="btn btn--dark">How to prepare</a>
+            <div class="rsvp-success-actions__secondary">
+              <a href="/#schedule" class="btn btn--secondary">Schedule</a>
+              <a href="/prepare#stay" class="btn btn--secondary">Where to stay</a>
+              <a href="/prepare#what-to-wear" class="btn btn--secondary">What to wear</a>
+              <a href="/wedding" class="btn btn--secondary">Ceremony</a>
+              <a href="/reception" class="btn btn--secondary">Reception</a>
+              <a href="/gallery" class="btn btn--secondary">Photo Gallery</a>
+              <a href="/" class="btn btn--secondary">Website</a>
+              <button type="button" class="btn btn--secondary" id="rsvpEditReply">Edit RSVP</button>
+            </div>
+          </nav>
           <p class="rsvp-note rsvp-success-note">
-            Need to change something?
-            <button type="button" id="rsvpEditReply" class="rsvp-inline-link">Update RSVP</button>
-            or
-            <a href="mailto:AndrewKatieTorres@gmail.com">email Katie</a>
+            Still have questions?
+            <a href="mailto:AndrewKatieTorres@gmail.com">Email Katie</a>
           </p>
         </div>
         <p id="rsvpStatus" class="rsvp-status" role="status" aria-live="polite" aria-atomic="true"></p>

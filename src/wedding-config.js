@@ -1,5 +1,5 @@
 export const weddingConfig = {
-  rsvpDeadline: 'October 31, 2026',
+  rsvpDeadline: 'December 1, 2026',
   contactEmail: 'AndrewKatieTorres@gmail.com',
   rsvpEndpoint: 'https://uyhzqldiukfmugasiapi.supabase.co/functions/v1/wedding-rsvp',
   dressInspirationUrl: 'https://www.pinterest.com/',

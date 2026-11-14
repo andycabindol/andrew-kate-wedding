@@ -386,23 +386,22 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
         return reply({ saved: true, party });
       }
 
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-      const rateKey = await signature(`rate:${ip}`);
-      if (!await database.allowRequest(rateKey)) return reply({ error: 'Too many attempts. Please try again in 10 minutes.' }, 429);
-      if (body.action === 'open') {
-        const id = typeof body.id === 'string' ? body.id.trim() : '';
-        if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) return reply({ error: 'Find your invitation again.' }, 400);
-        const party = await database.getParty(id);
-        if (!party) return reply({ error: 'Find your invitation again.' }, 404);
-        return reply({ party, token: await tokenFor(party) });
-      }
+      // Invite links already require an unguessable HMAC token. Never put them
+      // in the shared IP rate bucket — QR refreshes must always open.
       if (body.action === 'invite') {
         const invite = typeof body.invite === 'string' ? body.invite.trim() : '';
         const party = await partyFromInviteToken(invite);
         if (!party) return reply({ error: 'This invitation link isn’t valid.' }, 404);
         return reply({ party, token: await tokenFor(party), inviteToken: invite });
       }
+
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+
+      // Strict IP limit only for name search (enumeration). Open/submit use
+      // separate keys so a hotel Wi‑Fi full of guests can’t lock each other out.
       if (body.action === 'search') {
+        const searchKey = await signature(`rate:search:${ip}`);
+        if (!await database.allowRequest(searchKey)) return reply({ error: 'Too many attempts. Please try again in 10 minutes.' }, 429);
         if (typeof body.name !== 'string' || body.name.trim().length < 3 || body.name.length > 120) {
           return reply({ error: 'Please enter your full name as it appears on the invitation.' }, 400);
         }
@@ -413,8 +412,23 @@ export function createHandler({ database, secret, now = Date.now, adminPassword 
         }))) });
       }
 
+      if (body.action === 'open') {
+        const openKey = await signature(`rate:open:${ip}`);
+        if (!await database.allowRequest(openKey)) return reply({ error: 'Too many attempts. Please try again in 10 minutes.' }, 429);
+        const id = typeof body.id === 'string' ? body.id.trim() : '';
+        if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) return reply({ error: 'Find your invitation again.' }, 400);
+        const party = await database.getParty(id);
+        if (!party) return reply({ error: 'Find your invitation again.' }, 404);
+        return reply({ party, token: await tokenFor(party) });
+      }
+
+      if (body.action !== 'submit') return reply({ error: 'Unknown request.' }, 400);
       const session = await verify(body.token);
       if (!session) return reply({ error: 'Please find your invitation again before replying.' }, 401);
+      // Cap retries per invitation, not per Wi‑Fi — shared networks at the
+      // wedding shouldn't block unrelated guests from confirming.
+      const submitKey = await signature(`rate:submit:${session.id}`);
+      if (!await database.allowRequest(submitKey)) return reply({ error: 'Too many attempts. Please try again in 10 minutes.' }, 429);
       const party = await database.getParty(session.id);
       if (!party || JSON.stringify(session.members) !== JSON.stringify(party.members.map((member) => member.id))) {
         return reply({ error: 'Your invitation has changed. Please find it again.' }, 401);

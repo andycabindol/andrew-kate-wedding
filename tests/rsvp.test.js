@@ -149,6 +149,33 @@ test('rate limits name lookup and reply attempts', async () => {
   const app = setup(); app.limit();
   assert.equal((await app.call({ action: 'search', name: 'Alex Guest' })).status, 429);
 });
+test('invite links still open when the IP rate limit is exhausted', async () => {
+  let clock = 1000000;
+  let allowed = false;
+  const handler = createHandler({
+    secret: 'test-only-secret',
+    adminPassword: 'test-admin',
+    now: () => clock,
+    database: {
+      allowRequest: async () => allowed,
+      list: async () => [party],
+      getParty: async (id) => id === party.id ? party : null,
+    },
+  });
+  const call = (body) => handler(new Request('https://example.test', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  }));
+  allowed = true;
+  const login = await (await call({ action: 'admin-login', password: 'test-admin' })).json();
+  const listed = await (await call({ action: 'admin-list', token: login.token })).json();
+  const invite = listed.parties[0].inviteToken;
+  allowed = false;
+  assert.equal((await call({ action: 'search', name: 'Alex Guest' })).status, 429);
+  assert.equal((await call({ action: 'open', id: party.id })).status, 429);
+  const opened = await call({ action: 'invite', invite });
+  assert.equal(opened.status, 200);
+  assert.equal((await opened.json()).party.id, party.id);
+});
 test('sheet rows keep same last names as separate invitations and add plus ones', () => {
   const parties = partiesFromRows([
     { party_id: 'cabindol-andrew', party_name: 'Andrew Cabindol', guest_name: 'Andrew Cabindol', also_known_as: 'Andy Cabindol', extra_guests: '1' },

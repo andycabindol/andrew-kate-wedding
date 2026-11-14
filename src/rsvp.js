@@ -37,6 +37,14 @@ export function initRsvp(lenis) {
     if (back && screen !== 'search') back.hidden = true;
     const card = byId('rsvpCard');
     if (card) card.classList.toggle('is-success', screen === 'success');
+    if (inviteMode) {
+      document.documentElement.classList.toggle('is-invite-success', screen === 'success');
+      document.getElementById('rsvp')?.classList.toggle('rsvp--invite-success', screen === 'success');
+      if (screen === 'success') {
+        document.documentElement.classList.remove('is-invite-welcome', 'is-invite-confirm');
+        document.getElementById('rsvp')?.classList.remove('rsvp--invite-confirm', 'rsvp--invite-leaving');
+      }
+    }
     status.textContent = '';
   }
 
@@ -102,9 +110,17 @@ export function initRsvp(lenis) {
   let currentStage = 'find';
   let confirmStage = 'confirm';
 
+  function syncInviteStage(stage) {
+    if (!inviteMode) return;
+    document.documentElement.classList.toggle('is-invite-welcome', stage === 'find');
+    document.documentElement.classList.toggle('is-invite-confirm', stage === 'confirm' || stage === 'already');
+    document.getElementById('rsvp')?.classList.toggle('rsvp--invite-confirm', stage === 'confirm' || stage === 'already');
+  }
+
   function openReached(stage, { scroll = true, animate = true } = {}) {
     currentStage = stage;
     if (stage === 'confirm' || stage === 'already') confirmStage = stage;
+    syncInviteStage(stage);
     const confirmBody = byId('rsvpConfirmBody');
     const alreadyBody = byId('rsvpAlreadyBody');
     const noteBody = byId('rsvpNoteBody');
@@ -140,7 +156,7 @@ export function initRsvp(lenis) {
     }
     byId('rsvpCard')?.classList.toggle('is-stepped', here > 0);
     if (here !== 0) hideSuggestions();
-    slideTo(here, { animate });
+    slideTo(here, { animate: inviteMode && here === 1 ? true : animate });
     if (!scroll) return;
     const targets = {
       find: byId('rsvpFindBlock'),
@@ -150,7 +166,12 @@ export function initRsvp(lenis) {
     };
     scrollToStep(targets[stage]);
   }
-  const focus = (el) => el.focus({ preventScroll: true });
+  const focus = (el) => {
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    // Programmatic focus on headings can leave the names text selected in Safari.
+    window.getSelection()?.removeAllRanges();
+  };
 
   function scrollToStep(el, onDone) {
     if (!el) {
@@ -327,13 +348,30 @@ export function initRsvp(lenis) {
   }
 
   function openInvitation(party, { animate = true } = {}) {
-    if (party.replied) showAlready(party);
-    else selectParty(party, { animate });
+    if (inviteMode && party.replied) {
+      renderSuccess(party, responsesFromParty(party), party.wishes || '', { celebrate: false, moveFocus: false });
+      return;
+    }
+    if (inviteMode || !party.replied) selectParty(party, { animate });
+    else showAlready(party);
+  }
+
+  function inviteContinueLabel(party = selectedParty) {
+    return party?.replied ? 'Save RSVP Changes' : 'Confirm RSVP';
   }
 
   function chooseParty(party, mode) {
     if (mode === 'edit') selectParty(party);
     else openInvitation(party);
+    // Invite links already return a submit token — don't burn the IP rate
+    // limit on a redundant open when guests tap RSVP from a QR code.
+    if (party.token && mode !== 'edit') {
+      if (selectedParty?.id === party.id) {
+        selectedParty.token = party.token;
+        selectedParty.opening = Promise.resolve(party);
+      }
+      return;
+    }
     const opening = openParty(party).then((opened) => {
       if (selectedParty?.id !== party.id) return opened;
       selectedParty.token = opened.token;
@@ -372,17 +410,44 @@ export function initRsvp(lenis) {
 
   let invitedParty = null;
 
+  function playInviteReveal() {
+    const reveal = byId('inviteReveal');
+    const welcome = byId('rsvpWelcome');
+    if (!welcome) return;
+    welcome.classList.remove('is-revealed');
+    if (reveal) reveal.classList.remove('is-ready');
+    welcome.offsetHeight;
+    requestAnimationFrame(() => {
+      if (reveal) reveal.classList.add('is-ready');
+      welcome.classList.add('is-revealed');
+    });
+  }
+
   function applyInviteChrome(party) {
+    document.documentElement.classList.add('is-invite');
     document.getElementById('rsvp')?.classList.add('rsvp--invite');
     invitedParty = party;
-    const title = byId('rsvpTitle');
-    if (title) title.textContent = `Hi ${party.label}`;
+    byId('rsvpHelp').hidden = true;
+    searchForm.hidden = true;
+    const intro = byId('rsvpCardIntro');
+    if (intro) intro.hidden = true;
+
+    // After RSVPing, the invite link reopens on the success screen.
+    if (party.replied) {
+      const responses = responsesFromParty(party);
+      renderSuccess(party, responses, party.wishes || '', { celebrate: false, moveFocus: false });
+      return;
+    }
+
+    const greeting = byId('rsvpWelcomeGreeting');
+    if (greeting) greeting.textContent = party.label;
+    const welcomeStart = byId('rsvpWelcomeStart');
+    if (welcomeStart) welcomeStart.textContent = 'RSVP';
     const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
     if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
     byId('rsvpWelcome').hidden = false;
-    byId('rsvpHelp').hidden = true;
-    searchForm.hidden = true;
     openReached('find', { scroll: false, animate: false });
+    playInviteReveal();
   }
 
   function selectParty(party, { animate = true } = {}) {
@@ -392,19 +457,51 @@ export function initRsvp(lenis) {
     form.reset();
     members.replaceChildren();
     const heading = byId('partyHeading');
-    const intro = heading.nextElementSibling;
+    const intro = byId('rsvpConfirmIntro');
     const namedGuests = party.members.filter((member) => !member.plusOne);
     const several = namedGuests.length > 1;
     const first = (namedGuests[0] || party.members[0]).name.trim().split(/\s+/)[0];
-    heading.textContent = inviteMode ? party.label : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
-    heading.hidden = inviteMode || !several;
-    intro.textContent = party.members.length > 1
-      ? 'Everyone is marked as attending both events. Uncheck a box if someone can’t make that part.'
-      : 'You’re marked as attending both events. Uncheck a box if you can’t make that part.';
-    intro.hidden = false;
+    heading.textContent = inviteMode
+      ? 'Confirm your attendance'
+      : `${first}${/s$/i.test(first) ? '’' : '’s'} Party`;
+    heading.hidden = inviteMode ? false : !several;
+    if (inviteMode) {
+      if (intro) {
+        intro.hidden = true;
+        intro.textContent = '';
+      }
+    } else if (intro) {
+      intro.textContent = party.members.length > 1
+        ? 'Everyone is marked as attending both events. Uncheck a box if someone can’t make that part.'
+        : 'You’re marked as attending both events. Uncheck a box if you can’t make that part.';
+      intro.hidden = false;
+    }
+    const confirmPhoto = byId('inviteConfirmPhoto');
+    const confirmMeta = byId('inviteConfirmMeta');
+    if (confirmPhoto) {
+      confirmPhoto.hidden = !inviteMode;
+      if (inviteMode) {
+        confirmPhoto.classList.remove('is-revealed');
+        confirmPhoto.offsetHeight;
+        requestAnimationFrame(() => confirmPhoto.classList.add('is-revealed'));
+      }
+    }
+    if (confirmMeta) {
+      confirmMeta.hidden = !inviteMode;
+      if (inviteMode) {
+        confirmMeta.replaceChildren();
+        const date = document.createElement('p');
+        date.className = 'invite-confirm__date';
+        date.textContent = '05.29.2027';
+        const place = document.createElement('p');
+        place.className = 'invite-confirm__place';
+        place.textContent = 'AMES, IA';
+        confirmMeta.append(date, place);
+      }
+    }
 
     const table = document.createElement('div');
-    table.className = 'party-attendance';
+    table.className = inviteMode ? 'party-attendance party-attendance--invite' : 'party-attendance';
 
     const head = document.createElement('div');
     head.className = 'party-attendance__head';
@@ -415,20 +512,23 @@ export function initRsvp(lenis) {
     [['ceremony', weddingConfig.events.ceremony], ['reception', weddingConfig.events.reception]].forEach(([, event]) => {
       const col = document.createElement('div');
       col.className = 'party-attendance__event';
-      const titleRow = document.createElement('div');
+      const infoBtn = document.createElement('button');
+      infoBtn.type = 'button';
+      infoBtn.className = 'party-attendance__event-btn';
+      infoBtn.setAttribute('aria-label', `${event.label} details`);
+      const titleRow = document.createElement('span');
       titleRow.className = 'party-attendance__event-title';
       const title = document.createElement('strong');
       title.textContent = event.label;
-      const infoBtn = document.createElement('button');
-      infoBtn.type = 'button';
-      infoBtn.className = 'party-attendance__info';
-      infoBtn.setAttribute('aria-label', `${event.label} details`);
-      infoBtn.append(phosphorIcon('M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z'));
-      infoBtn.addEventListener('click', () => openEventDialog(event));
-      titleRow.append(title, infoBtn);
+      const icon = phosphorIcon('M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.classList.add('party-attendance__info-icon');
+      titleRow.append(title, icon);
       const detail = document.createElement('small');
       detail.textContent = event.detail;
-      col.append(titleRow, detail);
+      infoBtn.append(titleRow, detail);
+      infoBtn.addEventListener('click', () => openEventDialog(event));
+      col.append(infoBtn);
       head.append(col);
     });
     table.append(head);
@@ -540,6 +640,8 @@ export function initRsvp(lenis) {
 
     members.append(table);
     if (party.wishes) byId('wishes').value = party.wishes;
+    const continueBtn = byId('rsvpContinue');
+    if (continueBtn) continueBtn.textContent = inviteMode ? inviteContinueLabel(party) : 'Continue';
     showStep('confirm');
     openReached('confirm', { animate });
     if (several) focus(heading);
@@ -547,19 +649,70 @@ export function initRsvp(lenis) {
 
   function confirmationMessage(anyoneAttending) {
     return anyoneAttending
-      ? { title: 'RSVP confirmed!', detail: 'We can’t wait to share the day with you.' }
+      ? { title: 'You’re all set!', detail: 'We can’t wait to celebrate with you.' }
       : { title: 'We’ll miss you.', detail: 'Thank you for letting us know.' };
   }
 
-  function celebrate() {
+  function responsesFromParty(party) {
+    return (party.members || []).map((member) => {
+      const ceremony = typeof member.ceremony === 'boolean' ? member.ceremony : member.attending === true;
+      const reception = typeof member.reception === 'boolean' ? member.reception : member.attending === true;
+      return {
+        id: member.id,
+        name: member.name,
+        ceremony,
+        reception,
+        attending: ceremony || reception,
+      };
+    });
+  }
+
+  function renderSuccess(party, responses, wishes = '', { celebrate: shouldCelebrate = false, moveFocus = true } = {}) {
+    selectedParty = party;
+    savedReply = { party, responses, wishes };
+    const anyoneAttending = responses.some((response) => isAttendingAny(response));
+    const confirmation = confirmationMessage(anyoneAttending);
+    byId('rsvpSuccessMessage').textContent = confirmation.title;
+    byId('rsvpSuccessDetail').textContent = confirmation.detail;
+    byId('rsvpSummary').replaceChildren(...summaryItems(party, responses));
+    const prepareNote = byId('rsvpPrepareNote');
+    if (prepareNote) prepareNote.hidden = false;
+    const welcome = byId('rsvpWelcome');
+    if (welcome) {
+      welcome.hidden = true;
+      welcome.classList.remove('is-revealed', 'is-leaving');
+    }
+    document.documentElement.classList.remove('is-invite-welcome');
+    document.getElementById('rsvp')?.classList.remove('rsvp--invite-leaving');
+    showStep('success');
+    playSuccessReveal();
+    scrollToStep(byId('rsvpSuccessStep'), () => {
+      if (moveFocus) focus(byId('rsvpSuccessHeading'));
+      if (!shouldCelebrate || !anyoneAttending) return;
+      window.setTimeout(() => { celebrate(); }, inviteMode ? 380 : 80);
+    });
+  }
+
+  function playSuccessReveal() {
+    const step = byId('rsvpSuccessStep');
+    if (!step) return;
+    step.classList.remove('is-revealed');
+    step.offsetHeight;
+    requestAnimationFrame(() => step.classList.add('is-revealed'));
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => resolve(null);
+      image.src = src;
+    });
+  }
+
+  async function celebrate() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const mark = document.querySelector('#rsvpSuccessStep .rsvp-success-mark');
-    if (!mark) return;
-    const canvas = document.createElement('canvas');
-    canvas.className = 'rsvp-confetti';
-    canvas.setAttribute('aria-hidden', 'true');
-    document.body.append(canvas);
-    const context = canvas.getContext('2d');
+    document.querySelectorAll('.rsvp-confetti').forEach((node) => node.remove());
     const flowerSources = [
       '/images/letter/rose.png?v=2',
       '/images/letter/wildrose.png?v=2',
@@ -568,57 +721,69 @@ export function initRsvp(lenis) {
       '/images/letter/peony.png?v=2',
       '/images/letter/leaf.png?v=2',
     ];
-    const flowers = flowerSources.map((src) => {
-      const image = new Image();
-      image.src = src;
-      return image;
-    });
-    const box = mark.getBoundingClientRect();
-    const originX = box.left + box.width / 2;
-    const originY = box.top + box.height / 2;
-    const total = 96;
-    const spawnFor = 1800;
-    const duration = 5200;
-    const pieces = [];
-    let spawned = 0;
-    const spawnPiece = () => {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 3.2 + Math.random() * 7.5;
-      const size = 18 + Math.random() * 26;
-      return {
-        x: originX + (Math.random() - 0.5) * 28,
-        y: originY + (Math.random() - 0.5) * 12,
-        size,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 3.2,
-        spin: Math.random() * Math.PI * 2,
-        spinV: -0.12 + Math.random() * 0.24,
-        image: flowers[Math.floor(Math.random() * flowers.length)],
-        alpha: 0.82 + Math.random() * 0.18,
-      };
+    const flowers = (await Promise.all(flowerSources.map(loadImage))).filter(Boolean);
+    if (!flowers.length) return;
+
+    const photo = byId('rsvpSuccessPhoto');
+    const originBox = (photo || byId('rsvpSuccessHeading'))?.getBoundingClientRect();
+    if (!originBox) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'rsvp-confetti';
+    canvas.setAttribute('aria-hidden', 'true');
+    document.body.append(canvas);
+    const context = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const resize = () => {
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
+    resize();
+
+    const burstX = originBox.left + originBox.width / 2;
+    const burstY = originBox.top + originBox.height * 0.35;
+    const total = 72;
+    const duration = 4800;
+    const pieces = [];
+    for (let i = 0; i < total; i += 1) {
+      const fromTop = i % 3 === 0;
+      const angle = fromTop
+        ? Math.PI * 0.5 + (Math.random() - 0.5) * 0.7
+        : -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI;
+      const speed = fromTop ? 1.2 + Math.random() * 2.4 : 4.5 + Math.random() * 6.5;
+      pieces.push({
+        x: fromTop ? Math.random() * window.innerWidth : burstX + (Math.random() - 0.5) * 40,
+        y: fromTop ? -20 - Math.random() * 80 : burstY + (Math.random() - 0.5) * 24,
+        size: 16 + Math.random() * 22,
+        vx: Math.cos(angle) * speed * (fromTop ? 0.35 : 1),
+        vy: Math.sin(angle) * speed + (fromTop ? 1.5 : -2.4),
+        spin: Math.random() * Math.PI * 2,
+        spinV: -0.1 + Math.random() * 0.2,
+        image: flowers[Math.floor(Math.random() * flowers.length)],
+        alpha: 0.78 + Math.random() * 0.22,
+        delay: fromTop ? Math.random() * 900 : Math.random() * 180,
+      });
+    }
+
     const started = performance.now();
     const draw = (now) => {
       const elapsed = now - started;
-      const due = Math.min(total, Math.floor((Math.min(elapsed, spawnFor) / spawnFor) * total));
-      while (spawned < due) {
-        pieces.push(spawnPiece());
-        spawned += 1;
-      }
-      const width = canvas.width = window.innerWidth;
-      const height = canvas.height = window.innerHeight;
-      context.clearRect(0, 0, width, height);
+      context.clearRect(0, 0, window.innerWidth, window.innerHeight);
       pieces.forEach((piece) => {
-        piece.vy += 0.07;
+        if (elapsed < piece.delay) return;
+        piece.vy += 0.085;
         piece.x += piece.vx;
         piece.y += piece.vy;
-        piece.vx *= 0.992;
+        piece.vx *= 0.994;
         piece.spin += piece.spinV;
-        if (!piece.image.complete || !piece.image.naturalWidth) return;
+        const life = Math.max(0, 1 - (elapsed - piece.delay) / (duration - piece.delay));
         context.save();
         context.translate(piece.x, piece.y);
         context.rotate(piece.spin);
-        context.globalAlpha = piece.alpha;
+        context.globalAlpha = piece.alpha * Math.min(1, life * 1.4);
         context.drawImage(piece.image, -piece.size / 2, -piece.size / 2, piece.size, piece.size);
         context.restore();
       });
@@ -742,12 +907,17 @@ export function initRsvp(lenis) {
   }
 
   function beginInviteWelcome() {
+    document.documentElement.classList.add('is-invite', 'is-invite-welcome');
     document.getElementById('rsvp')?.classList.add('rsvp--invite');
     const welcomeLabel = byId('rsvpFindHeading')?.querySelector('.rsvp-story__label');
     if (welcomeLabel) welcomeLabel.textContent = 'Welcome';
-    const title = byId('rsvpTitle');
-    if (title && title.textContent === 'Confirm your RSVP') title.textContent = 'Welcome';
-    byId('rsvpWelcome').hidden = false;
+    const intro = byId('rsvpCardIntro');
+    if (intro) intro.hidden = true;
+    const welcome = byId('rsvpWelcome');
+    if (welcome) {
+      welcome.hidden = true;
+      welcome.classList.remove('is-leaving', 'is-revealed');
+    }
     byId('rsvpHelp').hidden = true;
     searchForm.hidden = true;
   }
@@ -818,7 +988,27 @@ export function initRsvp(lenis) {
   });
   byId('rsvpWelcomeStart').addEventListener('click', () => {
     if (!invitedParty || busy) return;
-    chooseParty(invitedParty, 'open');
+    const welcome = byId('rsvpWelcome');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const go = (() => {
+      let done = false;
+      return () => {
+        if (done) return;
+        done = true;
+        chooseParty(invitedParty, 'open');
+      };
+    })();
+    if (!welcome || reduced || welcome.classList.contains('is-leaving')) {
+      go();
+      return;
+    }
+    welcome.classList.add('is-leaving');
+    document.getElementById('rsvp')?.classList.add('rsvp--invite-leaving');
+    welcome.addEventListener('transitionend', (event) => {
+      if (event.target !== welcome || event.propertyName !== 'opacity') return;
+      go();
+    }, { once: true });
+    window.setTimeout(go, 480);
   });
   byId('changePartyBtn').addEventListener('click', backToSearch);
   byId('rsvpAlreadyBack').addEventListener('click', backToSearch);
@@ -871,6 +1061,10 @@ export function initRsvp(lenis) {
       scrollToStep(field);
       return;
     }
+    if (inviteMode) {
+      form.requestSubmit();
+      return;
+    }
     byId('rsvpWishesSummary').replaceChildren(...summaryItems(selectedParty, responses));
     openReached('note');
     focus(byId('rsvpWishesHeading'));
@@ -901,24 +1095,14 @@ export function initRsvp(lenis) {
     form.setAttribute('aria-busy', 'true');
     form.querySelectorAll('button, input, textarea').forEach((el) => { el.disabled = true; });
     submit.textContent = 'Saving…';
+    const continueBtn = byId('rsvpContinue');
+    if (inviteMode && continueBtn) continueBtn.textContent = 'Saving…';
     status.textContent = 'Saving your RSVP…';
     try {
       const data = await request(body);
       if (!data.saved) throw new Error('Missing save confirmation');
       selectedParty = rememberSavedParty(selectedParty, responses, body.wishes);
-      savedReply = { party: selectedParty, responses, wishes: body.wishes };
-      const anyoneAttending = responses.some((response) => isAttendingAny(response));
-      const confirmation = confirmationMessage(anyoneAttending);
-      byId('rsvpSuccessMessage').textContent = confirmation.title;
-      byId('rsvpSuccessDetail').textContent = confirmation.detail;
-      byId('rsvpSummary').replaceChildren(...summaryItems(selectedParty, responses));
-      const prepareNote = byId('rsvpPrepareNote');
-      if (prepareNote) prepareNote.hidden = !anyoneAttending;
-      showStep('success');
-      scrollToStep(byId('rsvpSuccessStep'), () => {
-        focus(byId('rsvpSuccessHeading'));
-        if (anyoneAttending) celebrate();
-      });
+      renderSuccess(selectedParty, responses, body.wishes, { celebrate: true });
     } catch (error) {
       status.textContent = errorMessage(error);
       // Preserve all answers and wishes on a failed save.
@@ -930,6 +1114,8 @@ export function initRsvp(lenis) {
       form.removeAttribute('aria-busy');
       form.querySelectorAll('button, input, textarea').forEach((el) => { el.disabled = false; });
       submit.textContent = 'Confirm RSVP';
+      const continueBtn = byId('rsvpContinue');
+      if (continueBtn) continueBtn.textContent = inviteMode ? inviteContinueLabel() : 'Continue';
     }
   });
   window.addEventListener('resize', () => {
