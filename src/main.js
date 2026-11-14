@@ -400,9 +400,8 @@ function initLetterFlowers(scroll) {
 
 initLetterFlowers(lenis);
 
-// FAQ accordion
-const accordion = document.getElementById('faqAccordion');
-if (accordion) {
+// FAQ accordion (home + RSVP success)
+document.querySelectorAll('.accordion').forEach((accordion) => {
   accordion.querySelectorAll('.accordion__trigger').forEach((trigger) => {
     trigger.addEventListener('click', () => {
       const item = trigger.closest('.accordion__item');
@@ -419,7 +418,7 @@ if (accordion) {
       }
     });
   });
-}
+});
 
 // RSVP check-in
 initWeddingContent();

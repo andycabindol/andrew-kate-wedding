@@ -3103,11 +3103,11 @@ html.is-invite .rsvp-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: min(420px, 100%);
+  justify-content: flex-start;
+  width: min(560px, 100%);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px));
   border-top: 0;
   overflow: visible;
   text-align: center;
@@ -3172,6 +3172,7 @@ html.is-invite .rsvp-stage {
 .rsvp--invite .rsvp-success-hero,
 .rsvp--invite .rsvp-summary,
 .rsvp--invite .rsvp-success-actions,
+.rsvp--invite .rsvp-success-faq,
 .rsvp--invite .rsvp-success-note {
   opacity: 0;
   transform: translate3d(0, 16px, 0);
@@ -3193,9 +3194,16 @@ html.is-invite .rsvp-stage {
   animation: invite-copy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.46s forwards;
 }
 
-.rsvp--invite #rsvpSuccessStep.is-revealed .rsvp-success-actions,
-.rsvp--invite #rsvpSuccessStep.is-revealed .rsvp-success-note {
+.rsvp--invite #rsvpSuccessStep.is-revealed .rsvp-success-actions {
   animation: invite-copy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.58s forwards;
+}
+
+.rsvp--invite #rsvpSuccessStep.is-revealed .rsvp-success-faq {
+  animation: invite-copy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.68s forwards;
+}
+
+.rsvp--invite #rsvpSuccessStep.is-revealed .rsvp-success-note {
+  animation: invite-copy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.78s forwards;
 }
 
 @keyframes invite-success-ticker-in {
@@ -3215,6 +3223,7 @@ html.is-invite .rsvp-stage {
   .rsvp--invite .rsvp-success-hero,
   .rsvp--invite .rsvp-summary,
   .rsvp--invite .rsvp-success-actions,
+  .rsvp--invite .rsvp-success-faq,
   .rsvp--invite .rsvp-success-note {
     opacity: 1;
     filter: none;
@@ -4170,8 +4179,8 @@ html.is-invite .rsvp-stage {
    ============================================ */
 @media (max-width: 809px) {
   :root {
-    --padding-x: 21px;
-    --section-pt: 100px;
+    --padding-x: 20px;
+    --section-pt: 72px;
   }
 
   .nav__links {
@@ -4275,20 +4284,59 @@ html.is-invite .rsvp-stage {
   }
 
   .hero__title {
-    font-size: 70px;
-    line-height: 1.2;
+    font-size: clamp(52px, 14vw, 64px);
+    line-height: 1.12;
   }
 
   .hero__date {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .hero__deadline {
     font-size: 14px;
   }
 
-  .section-title {
-    font-size: 43px;
+  /* Clearer mobile type hierarchy: eyebrow → heading → body */
+  .label {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .section-title,
+  .section-heading {
+    font-size: clamp(30px, 8vw, 36px);
+    line-height: 1.18;
+    letter-spacing: -0.035em;
+  }
+
+  .body-text {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .section-heading + .body-text,
+  .section-title + .body-text,
+  .page-title + .body-text,
+  .page-title + .venue__address {
+    margin-top: 12px;
+  }
+
+  .faq .section-heading,
+  .schedule .section-heading,
+  .lodging .section-heading,
+  .venue .section-heading {
+    margin-bottom: 10px;
+  }
+
+  .faq__intro,
+  .lodging__intro,
+  .prepare-dances__intro,
+  .venue-page__intro,
+  .party-page__intro,
+  .prepare-page__intro {
+    margin-top: 0;
+    margin-bottom: 28px;
   }
 
   .our-story__grid,
@@ -4297,7 +4345,7 @@ html.is-invite .rsvp-stage {
   .lodging__grid,
   .lodging__grid--three {
     grid-template-columns: 1fr;
-    gap: 45px;
+    gap: 36px;
   }
 
   .letter-stack {
@@ -4431,25 +4479,89 @@ html.is-invite .rsvp-stage {
   }
 
   .timeline__title {
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .timeline__content .body-text {
+    font-size: 15px;
   }
 
   .accordion__trigger {
-    font-size: 22px;
+    font-size: clamp(18px, 5vw, 22px);
+    line-height: 1.25;
+    padding: 16px 0;
+    gap: 12px;
+  }
+
+  .accordion__item.open .accordion__panel {
+    max-height: 520px;
   }
 
   .lodging .section-heading,
   .lodging__intro,
   .lodging__help,
   .faq .section-heading,
-  .faq__intro {
+  .faq__intro,
+  .schedule .section-heading,
+  .contact .section-heading {
     text-align: left;
   }
 
   .lodging__intro,
-  .lodging__help {
+  .lodging__help,
+  .faq__intro {
     margin-left: 0;
     margin-right: 0;
+    max-width: none;
+  }
+
+  /* Subpages: left-align titles so hierarchy reads top-down on a phone */
+  body.subpage .page-title {
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    gap: 8px 10px;
+  }
+
+  body.subpage .page-title__copy {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+  }
+
+  body.subpage .page-title__copy .section-heading,
+  body.subpage .section-heading--center,
+  body.subpage .body-text--center,
+  body.subpage .label,
+  body.subpage .label--center,
+  body.subpage .venue__address,
+  body.subpage .venue-page__intro,
+  body.subpage .venue-page__next,
+  body.subpage .party-page__intro {
+    text-align: left;
+  }
+
+  body.subpage .venue-page__intro,
+  body.subpage .party-page__intro {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: none;
+  }
+
+  body.subpage .venue-page__next {
+    text-align: left;
+  }
+
+  body.subpage .page-title__bloom img {
+    width: 28px;
+    height: 28px;
+  }
+
+  body.subpage .page-title__bloom--sm img {
+    width: 20px;
+    height: 20px;
   }
 
   .gifts__card {
@@ -4532,41 +4644,42 @@ html.is-invite .rsvp-stage {
   }
 
   .venue__address {
+    display: block;
     font-size: 14px;
+    line-height: 1.45;
+    margin-bottom: 12px;
   }
 
   .contact__email {
-    font-size: 22px;
+    font-size: clamp(18px, 5vw, 22px);
+    word-break: break-word;
   }
 
-  .venue-page {
-    padding-top: 112px;
+  .contact__inner .section-heading {
+    margin-bottom: 16px;
+  }
+
+  .venue-page,
+  .party-page,
+  .gallery-page {
+    padding-top: 104px;
+    padding-bottom: 72px;
   }
 
   .prepare-page {
-    padding-top: 112px;
-    padding-bottom: 32px;
+    padding-top: 104px;
+    padding-bottom: 28px;
   }
 
   .page-back {
-    margin-bottom: 28px;
+    margin-bottom: 20px;
   }
 
   body.prepare {
-    --prepare-section-space: 72px;
-    --prepare-intro-gap: 32px;
+    --prepare-section-space: 64px;
+    --prepare-intro-gap: 24px;
   }
 
-  body.prepare .page-title {
-    justify-content: flex-start;
-    width: 100%;
-    margin-inline: 0;
-  }
-
-  body.prepare .page-title__copy,
-  body.prepare .page-title__copy .section-heading,
-  body.prepare .section-heading--center,
-  body.prepare .body-text--center,
   body.prepare .prepare-page__intro,
   body.prepare .lodging__intro,
   body.prepare .prepare-dances__intro,
@@ -4587,29 +4700,25 @@ html.is-invite .rsvp-stage {
 
   .dance-videos {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 28px;
   }
 
   .dance-video__title {
-    font-size: 24px;
-  }
-
-  .party-page {
-    padding-top: 112px;
-    padding-bottom: 88px;
+    font-size: 22px;
+    line-height: 1.2;
   }
 
   .party-page__intro {
-    margin-bottom: 56px;
+    margin-bottom: 40px;
   }
 
   .party-sides {
-    gap: 96px;
+    gap: 72px;
   }
 
   .party-side {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 28px;
   }
 
   .party-side__anchor {
@@ -4620,12 +4729,18 @@ html.is-invite .rsvp-stage {
   }
 
   .party-side__groups {
-    gap: 40px;
+    gap: 32px;
+  }
+
+  .party-group__title {
+    font-size: 13px;
+    margin-bottom: 14px;
+    text-align: left;
   }
 
   .party-people {
-    justify-content: center;
-    gap: 28px 16px;
+    justify-content: flex-start;
+    gap: 24px 14px;
   }
 
   .party-person {
@@ -4633,21 +4748,30 @@ html.is-invite .rsvp-stage {
     flex-basis: calc(42% - 8px);
     width: calc(42% - 8px);
     max-width: 168px;
+    text-align: left;
   }
 
   .party-person__name {
-    font-size: 22px;
+    font-size: 18px;
+    line-height: 1.2;
   }
 
-  .gallery-page {
-    padding-top: 112px;
-    padding-bottom: 88px;
+  .party-person__role {
+    font-size: 13px;
   }
 
   .gallery-grid {
-    margin-top: 36px;
+    margin-top: 28px;
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .rsvp-cta__title {
+    font-size: 28px;
+  }
+
+  .gifts__card .section-heading {
+    font-size: clamp(30px, 8vw, 36px);
   }
 }
 
@@ -4910,8 +5034,34 @@ button:disabled { cursor: wait; opacity: .55; }
 .rsvp--invite .rsvp-success-actions__secondary {
   gap: 10px;
 }
+.rsvp-success-faq {
+  width: 100%;
+  margin: 28px 0 0;
+  text-align: left;
+}
+
+.rsvp-success-faq__title {
+  margin: 0 0 16px;
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 6vw, 36px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.rsvp-success-faq .accordion__trigger {
+  font-size: clamp(20px, 4.8vw, 24px);
+  padding: 18px 0;
+}
+
+.rsvp-success-faq .accordion__item.open .accordion__panel {
+  max-height: 480px;
+}
+
 .rsvp-success-note {
-  margin: 0;
+  margin: 24px 0 0;
   text-align: center;
 }
 .rsvp-confetti {
