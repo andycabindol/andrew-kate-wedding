@@ -44,8 +44,8 @@ export const weddingConfig = {
       {
         title: 'Bridal Party',
         people: [
-          { name: 'Emily Village', role: 'Maid of Honor' },
           { name: 'Lily Ferguson', role: 'Matron of Honor' },
+          { name: 'Emily Village', role: 'Bridesmaid' },
           { name: 'Gabby Ferguson', role: 'Bridesmaid' },
           { name: 'Molly Ferguson', role: 'Bridesmaid' },
           { name: 'Angelica Torres', role: 'Bridesmaid' },
